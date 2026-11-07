@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Siswa</title>
+    <title>Data Calon Siswa</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -16,51 +16,48 @@
         }
         .container {
             background-color: #fff;
-            padding: 20px;
+            padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            max-width: 600px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 650px;
             width: 100%;
-            page-break-after: avoid;
         }
         .kop-surat {
             text-align: center;
             margin-bottom: 20px;
         }
-        .kop-surat img {
-            max-width: 100px;
-            margin-bottom: 10px;
-        }
-        .kop-surat h1, .kop-surat p {
-            color: #333;
-            font-size: 18px;
+        .kop-surat h1 {
+            color: #1e3a8a;
+            font-size: 20px;
             margin: 5px 0;
+            font-weight: bold;
         }
         .kop-surat .jalan {
             color: #555;
-            font-size: 14px;
-            margin: 5px 0;
+            font-size: 12px;
+            margin: 3px 0;
         }
         .kop-surat .line {
             border-top: 2px solid #333;
-            margin: 10px 0;
+            margin: 15px 0;
         }
         h2 {
             text-align: center;
             color: #333;
-            margin-bottom: 20px;
-            font-size: 22px;
+            margin-bottom: 25px;
+            font-size: 18px;
+            text-transform: uppercase;
         }
         .data-item {
-            margin: 15px 0;
-            font-size: 18px;
+            margin: 12px 0;
+            font-size: 14px;
             display: flex;
             align-items: center;
         }
         .data-label {
             font-weight: bold;
-            color:#333;
-            min-width: 200px;
+            color: #475569;
+            min-width: 180px;
             position: relative;
             padding-right: 10px;
         }
@@ -72,68 +69,85 @@
         .data-value {
             flex: 1;
             padding-left: 10px;
-            background-color: #e9f5ff;
-            border-radius: 5px;
-            padding: 5px 10px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 6px 12px;
+            color: #1e293b;
+        }
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+                border: none;
+                padding: 0;
+            }
         }
     </style>
 </head>
-<body>
+<body onload="window.print()">
     <div class="container">
         <div class="kop-surat">
-            <img src="{{asset('images/logo-sd-kristen-diakui-rantai-damai.png')}}" alt="Logo Sekolah" />
             <h1>SD KRISTEN DIAKUI RANTAI DAMAI</h1>
-            <p style="font-size: small;">Jl. Singosari, Jetis, Belang Wetan, Kec. Klaten Utara, Kab. Klaten, Jawa Tengah, 57438</p>
+            <p class="jalan">Jl. Andi Pangeran, Desa Rantai Damai, Kec. Walenrang Timur, Kab. Luwu, Sulawesi Selatan</p>
             <div class="line"></div>
         </div>
-        <h2>Data Pendaftaran Calon Siswa</h2>
+        <h2>Data Formulir Calon Siswa</h2>
+
         <div class="data-item">
-            <span class="data-label">NIK</span>
-            <span class="data-value">1234567890123456</span>
+            <span class="data-label">NIK Calon Siswa</span>
+            <span class="data-value">{{ $casis?->nik_calon_siswa ?? $casis?->nik ?? '-' }}</span>
         </div>
         <div class="data-item">
-            <span class="data-label">Nama</span>
-            <span class="data-value">John Doe</span>
-        </div>
-        <div class="data-item">
-            <span class="data-label">Tempat, Tgl Lahir</span>
-            <span class="data-value">Jakarta, 01 Januari 2000</span>
-        </div>
-        <div class="data-item">
-            <span class="data-label">Jenis Kelamin</span>
-            <span class="data-value">Laki-laki</span>
-        </div>
-        <div class="data-item">
-            <span class="data-label">Jumlah Saudara</span>
-            <span class="data-value">2</span>
-        </div>
-        <div class="data-item">
-            <span class="data-label">Nama Orang Tua</span>
-            <span class="data-value">Jane Doe & John Smith</span>
+            <span class="data-label">Nama Lengkap</span>
+            <span class="data-value"><strong>{{ $casis?->nama_calon_siswa ?? $casis?->nama ?? '-' }}</strong></span>
         </div>
         <div class="data-item">
             <span class="data-label">Tempat, Tanggal Lahir</span>
-            <span class="data-value">Jakarta, 10 Maret 1975/span>
+            <span class="data-value">{{ $casis?->tmpt_lahir ?? '-' }}, {{ $casis?->tgl_lahir ? \Carbon\Carbon::parse($casis->tgl_lahir)->format('d F Y') : '-' }}</span>
+        </div>
+        <div class="data-item">
+            <span class="data-label">Jenis Kelamin</span>
+            <span class="data-value">{{ $casis?->jenis_kelamin ?? '-' }}</span>
+        </div>
+        <div class="data-item">
+            <span class="data-label">Agama</span>
+            <span class="data-value">{{ $casis?->agama ?? '-' }}</span>
+        </div>
+        <div class="data-item">
+            <span class="data-label">Jumlah Saudara</span>
+            <span class="data-value">{{ $casis?->jmlh_saudara ?? 0 }}</span>
+        </div>
+        <div class="data-item">
+            <span class="data-label">Nama Ayah / Ibu</span>
+            <span class="data-value">{{ $casis?->nama_ayah ?: '-' }} / {{ $casis?->nama_ibu ?: '-' }}</span>
         </div>
         <div class="data-item">
             <span class="data-label">Pendidikan Orang Tua</span>
-            <span class="data-value">S1 & S2</span>
+            <span class="data-value">{{ $casis?->pendidikan_ayah ?: '-' }} / {{ $casis?->pendidikan_ibu ?: '-' }}</span>
         </div>
         <div class="data-item">
             <span class="data-label">Pekerjaan Orang Tua</span>
-            <span class="data-value">Dokter & Pengacara</span>
+            <span class="data-value">{{ $casis?->pekerjaan_ayah ?: '-' }} / {{ $casis?->pekerjaan_ibu ?: '-' }}</span>
         </div>
         <div class="data-item">
-            <span class="data-label">Gaji Orang Tua</span>
-            <span class="data-value">Rp 10.000.000 & Rp 15.000.000</span>
+            <span class="data-label">Penghasilan Orang Tua</span>
+            <span class="data-value">Rp {{ number_format((float)($casis?->penghasilan_ayah ?? 0), 0, ',', '.') }} / Rp {{ number_format((float)($casis?->penghasilan_ibu ?? 0), 0, ',', '.') }}</span>
         </div>
         <div class="data-item">
-            <span class="data-label">Alamat</span>
-            <span class="data-value">Jl. Merdeka No. 123, Jakarta</span>
+            <span class="data-label">Alamat Lengkap</span>
+            <span class="data-value">{{ $casis?->alamat_calon_siswa ?? '-' }}</span>
         </div>
         <div class="data-item">
-            <span class="data-label">No Telepon</span>
-            <span class="data-value">08123456789</span>
+            <span class="data-label">No. Telepon / WhatsApp</span>
+            <span class="data-value">{{ $casis?->no_hp_calon_siswa ?? $casis?->no_hp_orang_tua ?? '-' }}</span>
+        </div>
+        <div class="data-item">
+            <span class="data-label">Status Pendaftaran</span>
+            <span class="data-value font-bold">{{ $casis?->status_pendaftaran ?? 'Menunggu' }}</span>
         </div>
     </div>
 </body>

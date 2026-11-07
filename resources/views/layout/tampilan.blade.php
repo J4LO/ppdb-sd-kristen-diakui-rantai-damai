@@ -19,12 +19,149 @@
     {{-- Vite (Tailwind) --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    <style>
+        /* Scoped styling untuk Sidebar Admin Datar dan Aksesibel */
+        .admin-sidebar {
+            width: 16rem;
+            background-color: #0f4c2a;
+            color: #d1fae5;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 50;
+            box-shadow: 4px 0 16px -2px rgba(0, 0, 0, 0.25);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Sinkronisasi margin konten utama terhadap sidebar pada breakpoint lg (1024px) */
+        @media (min-width: 1024px) {
+            .main-content {
+                margin-left: 16rem !important;
+            }
+        }
+        @media (max-width: 1023.98px) {
+            .main-content {
+                margin-left: 0 !important;
+            }
+        }
+
+        /* Label Grup Teks (Datar, Tanpa Akordion) */
+        .admin-group-label {
+            padding: 0.35rem 0.75rem 0.15rem 0.75rem;
+            font-size: 0.6875rem; /* 11px */
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #86efac; /* Green-300: rasio kontras > 8:1 terhadap #0f4c2a */
+            user-select: none;
+        }
+
+        /* Item Navigasi Tunggal */
+        .admin-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 38px;
+            padding: 0.45rem 0.75rem;
+            font-size: 0.875rem; /* 14px */
+            font-weight: 500;
+            line-height: 1.25;
+            border-radius: 8px;
+            color: #d1fae5;
+            border-left: 3px solid transparent;
+            text-decoration: none;
+            transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+        }
+
+        .admin-nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+        }
+
+        /* Item Aktif */
+        .admin-nav-item.active {
+            background-color: rgba(255, 255, 255, 0.16);
+            color: #ffffff;
+            font-weight: 600;
+            border-left-color: #34d399; /* emerald-400 */
+        }
+
+        /* Focus Visible Khusus (Kontras Tinggi Tanpa Garis Tepi Hitam Bawaan) */
+        .admin-nav-item:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 2px #34d399, 0 0 0 4px #0f4c2a;
+        }
+
+        /* Wadah Ikon Ukuran Tetap */
+        .admin-nav-icon {
+            width: 20px;
+            height: 20px;
+            min-width: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.95rem;
+            text-align: center;
+        }
+
+        /* Custom Scrollbar Tipis */
+        .custom-sidebar-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+        }
+        .custom-sidebar-scroll::-webkit-scrollbar {
+            width: 5px;
+        }
+        .custom-sidebar-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-sidebar-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 9999px;
+        }
+        .custom-sidebar-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.35);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .admin-sidebar {
+                transition: none !important;
+            }
+            .admin-nav-item {
+                transition: none !important;
+            }
+        }
+    </style>
+
     @stack('styles')
 </head>
 
-<body class="h-full bg-slate-50 font-sans" x-data="{ sidebarOpen: false }" @keydown.escape="sidebarOpen = false">
+<body class="h-full bg-slate-50 font-sans"
+      x-data="{ 
+          sidebarOpen: false,
+          openSidebar() {
+              this.sidebarOpen = true;
+              document.body.classList.add('overflow-hidden');
+              this.$nextTick(() => {
+                  this.$refs.closeButton?.focus();
+              });
+          },
+          closeSidebar() {
+              this.sidebarOpen = false;
+              document.body.classList.remove('overflow-hidden');
+              this.$nextTick(() => {
+                  this.$refs.menuButton?.focus();
+              });
+          }
+      }"
+      @keydown.escape="if (sidebarOpen) closeSidebar()">
 
-    {{-- Sidebar Overlay (Mobile) --}}
+    {{-- Sidebar Overlay (Mobile Off-canvas) --}}
     <div x-show="sidebarOpen"
          x-transition:enter="transition-opacity ease-out duration-200"
          x-transition:enter-start="opacity-0"
@@ -32,143 +169,312 @@
          x-transition:leave="transition-opacity ease-in duration-150"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         class="fixed inset-0 bg-black/50 z-40 lg:hidden"
-         @click="sidebarOpen = false"
+         class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-40 lg:hidden"
+         @click="closeSidebar()"
+         aria-hidden="true"
          style="display:none;">
     </div>
 
-    {{-- Sidebar --}}
+    {{-- Sidebar Admin --}}
     <aside id="sidebar"
-           class="sidebar-nav -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out"
-           :class="sidebarOpen ? '!translate-x-0' : ''">
+           class="admin-sidebar sidebar-nav fixed inset-y-0 left-0 z-50 flex flex-col w-64 max-w-[86vw] bg-[#0f4c2a] text-[#d1fae5] shadow-xl -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out"
+           :class="sidebarOpen ? '!translate-x-0' : ''"
+           aria-label="Menu navigasi admin">
 
-        {{-- Brand --}}
-        <div class="sidebar-brand">
-            <div class="w-9 h-9 bg-green-400/20 rounded-lg flex items-center justify-center shrink-0">
-                <i class="fas fa-school text-green-300 text-sm"></i>
+        {{-- Brand & Tombol Tutup Mobile --}}
+        <div class="sidebar-brand flex items-center justify-between px-4 py-2.5 border-b border-white/10 shrink-0">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <div class="w-8 h-8 bg-emerald-400/20 rounded-lg flex items-center justify-center shrink-0">
+                    <i class="fas fa-school text-emerald-300 text-sm" aria-hidden="true"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-white font-bold text-sm leading-tight truncate">PPDB SD Kristen</p>
+                    <p class="text-emerald-300/80 text-[11px] truncate">Diakui Rantai Damai</p>
+                </div>
             </div>
-            <div class="min-w-0">
-                <p class="text-white font-bold text-sm leading-tight truncate">PPDB SD Kristen</p>
-                <p class="text-green-300 text-xs">Diakui Rantai Damai</p>
-            </div>
+            {{-- Tombol Tutup Sidebar (<1024px) --}}
+            <button type="button"
+                    x-ref="closeButton"
+                    @click="closeSidebar()"
+                    class="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg text-emerald-200 hover:text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f4c2a] transition-colors"
+                    aria-label="Tutup menu navigasi">
+                <i class="fas fa-times text-base" aria-hidden="true"></i>
+            </button>
         </div>
 
         {{-- User Info --}}
-        <div class="px-3 py-3 border-b border-white/10">
-            <div class="flex items-center gap-2.5 bg-white/5 rounded-lg px-3 py-2.5">
-                <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shrink-0">
-                    <i class="fas fa-user text-white text-xs"></i>
+        <div class="px-3 py-2 border-b border-white/10 shrink-0">
+            <div class="flex items-center gap-2 bg-white/5 rounded-lg px-2.5 py-1.5">
+                <div class="w-7 h-7 rounded-full bg-emerald-600 flex items-center justify-center shrink-0">
+                    <i class="fas fa-user-shield text-white text-[11px]" aria-hidden="true"></i>
                 </div>
                 <div class="min-w-0">
-                    @php $user = session('user'); @endphp
-                    <p class="text-white text-sm font-medium truncate">{{ $user->name ?? 'Admin' }}</p>
-                    <p class="text-green-300 text-xs">Administrator</p>
+                    @php $currentUser = session('user') ?? auth()->user(); @endphp
+                    <p class="text-white text-xs font-semibold truncate">{{ $currentUser->nama ?? $currentUser->name ?? 'Admin' }}</p>
+                    <p class="text-emerald-300/80 text-[11px] leading-none">Administrator</p>
                 </div>
             </div>
         </div>
 
-        {{-- Navigation --}}
-        <nav class="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
-            {{-- Dashboard --}}
-            <a href="/admin/dashboard" class="sidebar-nav-item {{ Request::is('admin/dashboard') ? 'active' : '' }}">
-                <i class="fas fa-tachometer-alt w-4 text-center"></i>
-                <span>Dashboard</span>
-            </a>
+        {{-- Navigation List (Scrollable Area) --}}
+        <nav class="flex-1 min-h-0 px-3 py-2 overflow-y-auto space-y-1.5 custom-sidebar-scroll" aria-label="Menu navigasi admin">
 
-            {{-- Data Master Group --}}
-            <div class="sidebar-group-title">Data Master</div>
-            <div x-data="{ open: {{ Request::is('admin/data/*') || Request::is('admin/biaya-daftar-ulang*') || Request::routeIs('biaya-daftar-ulang.*') ? 'true' : 'false' }} }">
-                <button @click="open = !open"
-                        class="sidebar-nav-item w-full justify-between {{ Request::is('admin/data/*') || Request::is('admin/biaya-daftar-ulang*') || Request::routeIs('biaya-daftar-ulang.*') ? 'active' : '' }}">
-                    <span class="flex items-center gap-2.5">
-                        <i class="fas fa-database w-4 text-center"></i>
-                        <span>Data Master</span>
-                    </span>
-                    <i class="fas fa-chevron-down text-xs transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
-                </button>
-                <div x-show="open" x-collapse class="space-y-0.5 mt-0.5">
-                    <a href="/admin/data/casis" class="sidebar-submenu-item {{ Request::is('admin/data/casis*') ? 'active' : '' }}">
-                        <i class="fas fa-circle text-[6px]"></i> Casis & Orang Tua
-                    </a>
-                    <a href="/admin/data/panitia" class="sidebar-submenu-item {{ Request::is('admin/data/panitia*') ? 'active' : '' }}">
-                        <i class="fas fa-circle text-[6px]"></i> Data Panitia
-                    </a>
-                    <a href="{{ route('biaya-daftar-ulang.index') }}" class="sidebar-submenu-item {{ Request::routeIs('biaya-daftar-ulang.*') ? 'active' : '' }}">
-                        <i class="fas fa-circle text-[6px]"></i> Biaya Daftar Ulang
-                    </a>
-                    <a href="/admin/data/user" class="sidebar-submenu-item {{ Request::is('admin/data/user') ? 'active' : '' }}">
-                        <i class="fas fa-circle text-[6px]"></i> Data User (Akun)
-                    </a>
-                    <a href="/admin/data/tahun-ajaran" class="sidebar-submenu-item {{ Request::is('admin/data/tahun-ajaran') ? 'active' : '' }}">
-                        <i class="fas fa-circle text-[6px]"></i> Tahun Ajaran
-                    </a>
-                    <a href="/admin/data/landing-page" class="sidebar-submenu-item {{ Request::is('admin/data/landing-page') ? 'active' : '' }}">
-                        <i class="fas fa-circle text-[6px]"></i> Landing Page (Hero)
-                    </a>
-
-                </div>
+            {{-- 1. Dashboard (Mandiri di atas, tanpa judul grup) --}}
+            @php
+                $isDashboardActive = Request::is('admin/dashboard') || Request::routeIs('admin.dashboard');
+            @endphp
+            <div>
+                <a href="/admin/dashboard"
+                   @click="if (window.innerWidth < 1024) closeSidebar()"
+                   title="Dashboard Ringkasan Admin"
+                   class="admin-nav-item {{ $isDashboardActive ? 'active' : '' }}"
+                   {!! $isDashboardActive ? 'aria-current="page"' : '' !!}>
+                    <span class="admin-nav-icon"><i class="fas fa-tachometer-alt" aria-hidden="true"></i></span>
+                    <span class="truncate">Dashboard</span>
+                </a>
             </div>
 
-            {{-- Administrasi Group --}}
-            <div class="sidebar-group-title">Administrasi</div>
-            <div x-data="{ open: {{ Request::is('admin/pendaftaran*') || Request::is('admin/pembayaran*') || Request::routeIs('admin.daftar_ulang.*') ? 'true' : 'false' }} }">
-                <button @click="open = !open"
-                        class="sidebar-nav-item w-full justify-between {{ Request::is('admin/pendaftaran*') || Request::is('admin/pembayaran*') || Request::routeIs('admin.daftar_ulang.*') ? 'active' : '' }}">
-                    <span class="flex items-center gap-2.5">
-                        <i class="fas fa-clipboard-list w-4 text-center"></i>
-                        <span>Administrasi</span>
-                    </span>
-                    <i class="fas fa-chevron-down text-xs transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
-                </button>
-                <div x-show="open" x-collapse class="space-y-0.5 mt-0.5">
-                    <a href="/admin/pendaftaran" class="sidebar-submenu-item {{ Request::is('admin/pendaftaran') ? 'active' : '' }}">
-                        <i class="fas fa-circle text-[6px]"></i> Pendaftaran
-                    </a>
-                    <a href="/admin/pembayaran" class="sidebar-submenu-item {{ Request::is('admin/pembayaran') ? 'active' : '' }}">
-                        <i class="fas fa-circle text-[6px]"></i> Pembayaran
-                    </a>
-                    <a href="{{ route('admin.daftar_ulang.index') }}" class="sidebar-submenu-item {{ Request::routeIs('admin.daftar_ulang.*') ? 'active' : '' }}">
-                        <i class="fas fa-circle text-[6px]"></i> Verifikasi Daftar Ulang
-                    </a>
-                </div>
+            {{-- 2. Grup: PENDAFTARAN --}}
+            <div>
+                <div class="admin-group-label" id="group-pendaftaran">PENDAFTARAN</div>
+                <ul role="list" aria-labelledby="group-pendaftaran" class="space-y-1">
+                    {{-- Calon Siswa --}}
+                    @php
+                        $isCasisActive = Request::is('admin/data/casis*') || Request::routeIs('indexcasis', 'editdata', 'detailcasis');
+                    @endphp
+                    <li>
+                        <a href="/admin/data/casis"
+                           @click="if (window.innerWidth < 1024) closeSidebar()"
+                           title="Data Calon Siswa & Arsip"
+                           class="admin-nav-item {{ $isCasisActive ? 'active' : '' }}"
+                           {!! $isCasisActive ? 'aria-current="page"' : '' !!}>
+                            <span class="admin-nav-icon"><i class="fas fa-user-graduate" aria-hidden="true"></i></span>
+                            <span class="truncate">Calon Siswa</span>
+                        </a>
+                    </li>
+
+                    {{-- Verifikasi Dokumen --}}
+                    @php
+                        $isPendaftaranActive = Request::is('admin/pendaftaran*') || Request::routeIs('datapendaftaran', 'formpendaftaran', 'periksadokumen', 'tampildata');
+                    @endphp
+                    <li>
+                        <a href="/admin/pendaftaran"
+                           @click="if (window.innerWidth < 1024) closeSidebar()"
+                           title="Verifikasi Dokumen Persyaratan Calon Siswa"
+                           class="admin-nav-item {{ $isPendaftaranActive ? 'active' : '' }}"
+                           {!! $isPendaftaranActive ? 'aria-current="page"' : '' !!}>
+                            <span class="admin-nav-icon"><i class="fas fa-clipboard-check" aria-hidden="true"></i></span>
+                            <span class="truncate">Verifikasi Dokumen</span>
+                            @if(!empty($antreanDokumenMenunggu) && $antreanDokumenMenunggu > 0)
+                                <span class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-bold leading-none text-white bg-amber-500 rounded-full shadow-xs" title="{{ $antreanDokumenMenunggu }} siswa dalam antrean verifikasi">
+                                    {{ $antreanDokumenMenunggu }}
+                                </span>
+                            @endif
+                        </a>
+                    </li>
+
+                    {{-- Pembayaran Pendaftaran --}}
+                    @php
+                        $isPembayaranActive = Request::is('admin/pembayaran*') || Request::routeIs('index', 'tagihan');
+                    @endphp
+                    <li>
+                        <a href="/admin/pembayaran"
+                           @click="if (window.innerWidth < 1024) closeSidebar()"
+                           title="Pembayaran Pendaftaran"
+                           class="admin-nav-item {{ $isPembayaranActive ? 'active' : '' }}"
+                           {!! $isPembayaranActive ? 'aria-current="page"' : '' !!}>
+                            <span class="admin-nav-icon"><i class="fas fa-money-bill-wave" aria-hidden="true"></i></span>
+                            <span class="truncate">Pembayaran</span>
+                            @if (!empty($pembayaranPerluPerhatian) && $pembayaranPerluPerhatian > 0)
+                                <span class="ml-auto inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full bg-amber-400 text-amber-950"
+                                      title="{{ $pembayaranPerluPerhatian }} pembayaran perlu perhatian"
+                                      aria-label="{{ $pembayaranPerluPerhatian }} pembayaran perlu perhatian">
+                                    {{ $pembayaranPerluPerhatian }}
+                                </span>
+                            @endif
+                        </a>
+                    </li>
+                </ul>
             </div>
 
-            {{-- Laporan Group --}}
-            <div class="sidebar-group-title">Laporan</div>
-            <div x-data="{ open: {{ Request::is('admin/laporan/*') ? 'true' : 'false' }} }">
-                <button @click="open = !open"
-                        class="sidebar-nav-item w-full justify-between {{ Request::is('admin/laporan/*') ? 'active' : '' }}">
-                    <span class="flex items-center gap-2.5">
-                        <i class="fas fa-chart-bar w-4 text-center"></i>
-                        <span>Laporan</span>
-                    </span>
-                    <i class="fas fa-chevron-down text-xs transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
-                </button>
-                <div x-show="open" x-collapse class="space-y-0.5 mt-0.5">
-                    <a href="/admin/laporan/pendaftaran" class="sidebar-submenu-item {{ Request::is('admin/laporan/pendaftaran') ? 'active' : '' }}">
-                        <i class="fas fa-circle text-[6px]"></i> Laporan Pendaftaran
-                    </a>
-                    <a href="/admin/laporan/pembayaran" class="sidebar-submenu-item {{ Request::is('admin/laporan/pembayaran') ? 'active' : '' }}">
-                        <i class="fas fa-circle text-[6px]"></i> Laporan Pembayaran
-                    </a>
-                </div>
+            {{-- 3. Grup: DAFTAR ULANG --}}
+            <div>
+                <div class="admin-group-label" id="group-daftar-ulang">DAFTAR ULANG</div>
+                <ul role="list" aria-labelledby="group-daftar-ulang" class="space-y-1">
+                    {{-- Daftar Ulang & Uang Pangkal --}}
+                    @php
+                        $isDuActive = Request::is('admin/verifikasi-daftar-ulang*') || Request::routeIs('admin.daftar_ulang.*');
+                    @endphp
+                    <li>
+                        <a href="{{ route('admin.daftar_ulang.index') }}"
+                           @click="if (window.innerWidth < 1024) closeSidebar()"
+                           title="Daftar Ulang & Uang Pangkal"
+                           class="admin-nav-item {{ $isDuActive ? 'active' : '' }}"
+                           {!! $isDuActive ? 'aria-current="page"' : '' !!}>
+                            <span class="admin-nav-icon"><i class="fas fa-user-check" aria-hidden="true"></i></span>
+                            <span class="truncate">Daftar Ulang</span>
+                            {{-- TODO: Tampilkan badge angka bila variabel antrean daftar ulang belum lunas sudah tersedia secara global di layout --}}
+                        </a>
+                    </li>
+                </ul>
             </div>
 
-            {{-- Profil --}}
-            <div class="sidebar-group-title">Akun</div>
-            <a href="/admin/profil" class="sidebar-nav-item {{ Request::is('admin/profil') ? 'active' : '' }}">
-                <i class="fas fa-user-circle w-4 text-center"></i>
-                <span>Profil Saya</span>
-            </a>
-            <a href="/logout" class="sidebar-nav-item hover:bg-red-800/50">
-                <i class="fas fa-sign-out-alt w-4 text-center"></i>
-                <span>Logout</span>
-            </a>
+            {{-- 4. Grup: LAPORAN --}}
+            <div>
+                <div class="admin-group-label" id="group-laporan">LAPORAN</div>
+                <ul role="list" aria-labelledby="group-laporan" class="space-y-1">
+                    {{-- Laporan Pendaftaran --}}
+                    @php
+                        $isLapPendaftaranActive = Request::is('admin/laporan/pendaftaran*') || Request::routeIs('admin.pendaftaran');
+                    @endphp
+                    <li>
+                        <a href="/admin/laporan/pendaftaran"
+                           @click="if (window.innerWidth < 1024) closeSidebar()"
+                           title="Rekap Pendaftaran"
+                           aria-label="Rekap Pendaftaran"
+                           class="admin-nav-item {{ $isLapPendaftaranActive ? 'active' : '' }}"
+                           {!! $isLapPendaftaranActive ? 'aria-current="page"' : '' !!}>
+                            <span class="admin-nav-icon"><i class="fas fa-file-alt" aria-hidden="true"></i></span>
+                            <span class="truncate">Rekap Pendaftaran</span>
+                        </a>
+                    </li>
+
+                    {{-- Laporan Pembayaran --}}
+                    @php
+                        $isLapPembayaranActive = Request::is('admin/laporan/pembayaran*') || Request::routeIs('admin.pembayaran');
+                    @endphp
+                    <li>
+                        <a href="/admin/laporan/pembayaran"
+                           @click="if (window.innerWidth < 1024) closeSidebar()"
+                           title="Rekap Pembayaran"
+                           aria-label="Rekap Pembayaran"
+                           class="admin-nav-item {{ $isLapPembayaranActive ? 'active' : '' }}"
+                           {!! $isLapPembayaranActive ? 'aria-current="page"' : '' !!}>
+                            <span class="admin-nav-icon"><i class="fas fa-file-invoice-dollar" aria-hidden="true"></i></span>
+                            <span class="truncate">Rekap Pembayaran</span>
+                        </a>
+                    </li>
+
+                    {{-- Laporan Daftar Ulang --}}
+                    @php
+                        $isLapDuActive = Request::is('admin/laporan/daftar-ulang*') || Request::routeIs('admin.laporan.daftar-ulang.*');
+                    @endphp
+                    <li>
+                        <a href="{{ route('admin.laporan.daftar-ulang.index') }}"
+                           @click="if (window.innerWidth < 1024) closeSidebar()"
+                           title="Rekap Daftar Ulang"
+                           aria-label="Rekap Daftar Ulang"
+                           class="admin-nav-item {{ $isLapDuActive ? 'active' : '' }}"
+                           {!! $isLapDuActive ? 'aria-current="page"' : '' !!}>
+                            <span class="admin-nav-icon"><i class="fas fa-file-signature" aria-hidden="true"></i></span>
+                            <span class="truncate">Rekap Daftar Ulang</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            {{-- 5. Grup: MASTER DATA --}}
+            <div>
+                <div class="admin-group-label" id="group-master-data">MASTER DATA</div>
+                <ul role="list" aria-labelledby="group-master-data" class="space-y-1">
+                    {{-- Tahun Ajaran & Biaya --}}
+                    @php
+                        $isTahunActive = Request::is('admin/data/tahun-ajaran*') || Request::is('admin/tahun-ajaran*') || Request::is('admin/biaya-daftar-ulang*') || Request::routeIs('beranda.tahun', 'tahun.*', 'biaya-daftar-ulang.*');
+                    @endphp
+                    <li>
+                        <a href="/admin/data/tahun-ajaran"
+                           @click="if (window.innerWidth < 1024) closeSidebar()"
+                           title="Tahun Ajaran & Pengaturan Biaya"
+                           class="admin-nav-item {{ $isTahunActive ? 'active' : '' }}"
+                           {!! $isTahunActive ? 'aria-current="page"' : '' !!}>
+                            <span class="admin-nav-icon"><i class="fas fa-calendar-alt" aria-hidden="true"></i></span>
+                            <span class="truncate">Tahun Ajaran & Biaya</span>
+                        </a>
+                    </li>
+
+                    {{-- Data Panitia --}}
+                    @php
+                        $isPanitiaActive = Request::is('admin/data/panitia*') || Request::routeIs('datapanitia', 'addpanitia', 'editpanitia');
+                    @endphp
+                    <li>
+                        <a href="/admin/data/panitia"
+                           @click="if (window.innerWidth < 1024) closeSidebar()"
+                           title="Data Panitia PPDB"
+                           class="admin-nav-item {{ $isPanitiaActive ? 'active' : '' }}"
+                           {!! $isPanitiaActive ? 'aria-current="page"' : '' !!}>
+                            <span class="admin-nav-icon"><i class="fas fa-users-cog" aria-hidden="true"></i></span>
+                            <span class="truncate">Data Panitia</span>
+                        </a>
+                    </li>
+
+                    {{-- Data Pengguna --}}
+                    @php
+                        $isUserActive = Request::is('admin/data/user*') || Request::routeIs('beranda.datauser');
+                    @endphp
+                    <li>
+                        <a href="/admin/data/user"
+                           @click="if (window.innerWidth < 1024) closeSidebar()"
+                           title="Data Akun Pengguna"
+                           class="admin-nav-item {{ $isUserActive ? 'active' : '' }}"
+                           {!! $isUserActive ? 'aria-current="page"' : '' !!}>
+                            <span class="admin-nav-icon"><i class="fas fa-users" aria-hidden="true"></i></span>
+                            <span class="truncate">Data Pengguna</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            {{-- 6. Grup: KONTEN WEBSITE --}}
+            <div>
+                <div class="admin-group-label" id="group-konten">KONTEN WEBSITE</div>
+                <ul role="list" aria-labelledby="group-konten" class="space-y-1">
+                    {{-- Landing Page --}}
+                    @php
+                        $isHeroActive = Request::is('admin/data/landing-page*') || Request::routeIs('photo.pengaturan');
+                    @endphp
+                    <li>
+                        <a href="/admin/data/landing-page"
+                           @click="if (window.innerWidth < 1024) closeSidebar()"
+                           title="Pengaturan Konten Landing Page & Hero Banner"
+                           class="admin-nav-item {{ $isHeroActive ? 'active' : '' }}"
+                           {!! $isHeroActive ? 'aria-current="page"' : '' !!}>
+                            <span class="admin-nav-icon"><i class="fas fa-images" aria-hidden="true"></i></span>
+                            <span class="truncate">Landing Page</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
         </nav>
 
-        {{-- Sidebar Footer --}}
-        <div class="px-3 py-2.5 border-t border-white/10">
-            <p class="text-green-400/60 text-xs text-center">TA {{ $aktivTahunAjaran->tahun_ajar ?? date('Y') }}</p>
+        {{-- 7. Grup: AKUN --}}
+        <div class="shrink-0 px-3 pt-2 pb-2.5 border-t border-white/10 bg-[#0c3c21]" style="padding-bottom: max(0.625rem, env(safe-area-inset-bottom, 0.625rem));">
+            <div class="admin-group-label" id="group-akun" style="padding-top: 0 !important; padding-bottom: 0.15rem !important;">AKUN</div>
+            <ul role="list" aria-labelledby="group-akun" class="space-y-1">
+                @php
+                    $isProfilActive = Request::is('admin/profil*') || Request::routeIs('admin.profil');
+                @endphp
+                <li>
+                    <a href="/admin/profil"
+                       @click="if (window.innerWidth < 1024) closeSidebar()"
+                       title="Profil Saya"
+                       class="admin-nav-item {{ $isProfilActive ? 'active' : '' }}"
+                       {!! $isProfilActive ? 'aria-current="page"' : '' !!}>
+                        <span class="admin-nav-icon"><i class="fas fa-user-circle" aria-hidden="true"></i></span>
+                        <span class="truncate">Profil Saya</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('logout') }}"
+                       onclick="return confirm('Apakah Anda yakin ingin keluar dari sistem?')"
+                       title="Keluar dari Sistem PPDB"
+                       aria-label="Keluar"
+                       class="admin-nav-item min-h-[44px] text-red-300 hover:text-white hover:bg-red-500/20">
+                        <span class="admin-nav-icon text-red-400"><i class="fas fa-sign-out-alt" aria-hidden="true"></i></span>
+                        <span class="truncate">Keluar</span>
+                    </a>
+                </li>
+            </ul>
         </div>
     </aside>
 
@@ -178,10 +484,15 @@
         {{-- Top Navbar --}}
         <header class="top-navbar">
             <div class="flex items-center gap-3">
-                {{-- Mobile Menu Toggle --}}
-                <button @click="sidebarOpen = !sidebarOpen"
-                        class="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
-                    <i class="fas fa-bars text-sm"></i>
+                {{-- Mobile Menu Toggle (Area Sentuh Minimum 44x44px) --}}
+                <button type="button"
+                        x-ref="menuButton"
+                        @click="openSidebar()"
+                        class="lg:hidden w-11 h-11 flex items-center justify-center rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 transition-colors"
+                        aria-label="Buka menu navigasi"
+                        :aria-expanded="sidebarOpen.toString()"
+                        aria-controls="sidebar">
+                    <i class="fas fa-bars text-lg" aria-hidden="true"></i>
                 </button>
 
                 {{-- Page Breadcrumb --}}
@@ -220,8 +531,7 @@
         </footer>
     </div>
 
-    {{-- Alpine.js --}}
-    <script defer src="https://unpkg.com/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    {{-- Alpine.js (Core) --}}
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     {{-- jQuery (needed for some features) --}}
@@ -229,12 +539,11 @@
 
     @stack('scripts')
 
-    {{-- Sidebar collapse init --}}
+    {{-- Auto-close mobile sidebar on desktop resize --}}
     <script>
-        // Auto-close sidebar on desktop resize
         window.addEventListener('resize', () => {
             if (window.innerWidth >= 1024) {
-                document.getElementById('sidebar').classList.remove('-translate-x-full');
+                document.body.classList.remove('overflow-hidden');
             }
         });
     </script>

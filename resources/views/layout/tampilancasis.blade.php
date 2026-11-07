@@ -14,6 +14,35 @@
 
     <link rel="stylesheet" href="{{ asset('template/plugins/fontawesome-free/css/all.min.css') }}">
 
+    <style>
+        /* Standar Wadah Bersama Portal Calon Siswa (Sesuai Halaman Pembayaran) */
+        .casis-main-area {
+            padding-top: 1.5rem;
+            padding-bottom: 2.5rem;
+            padding-left: clamp(16px, 2.5vw, 24px);
+            padding-right: clamp(16px, 2.5vw, 24px);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .page-container {
+            width: 100%;
+            max-width: 1152px; /* 72rem = max-w-6xl */
+            margin-left: auto;
+            margin-right: auto;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 899.98px) {
+            .casis-main-area {
+                padding-left: 16px !important;
+                padding-right: 16px !important;
+                padding-top: 1rem;
+                padding-bottom: 2rem;
+            }
+        }
+    </style>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
 </head>
@@ -55,9 +84,9 @@
                     <i class="fas fa-user text-white text-xs"></i>
                 </div>
                 <div class="min-w-0">
-                    @php $user = session('user'); @endphp
-                    <p class="text-white text-sm font-medium truncate">{{ $user->name ?? 'Calon Siswa' }}</p>
-                    <p class="text-green-300 text-xs">Calon Siswa</p>
+                    @php $currentUser = session('user') ?? auth()->user(); @endphp
+                    <p class="text-white text-sm font-medium truncate">{{ $currentUser->nama ?? $currentUser->name ?? 'Orang Tua' }}</p>
+                    <p class="text-green-300 text-xs">{{ $currentUser->role ?? 'Orang Tua' }}</p>
                 </div>
             </div>
         </div>
@@ -103,10 +132,6 @@
                 <span>Logout</span>
             </a>
         </nav>
-
-        <div class="px-3 py-2.5 border-t border-white/10">
-            <p class="text-green-400/60 text-xs text-center">TA {{ $aktivTahunAjaran->tahun_ajar ?? date('Y') }}</p>
-        </div>
     </aside>
 
     {{-- Main Content --}}
@@ -138,9 +163,11 @@
             </div>
         </header>
 
-        <main class="flex-1 p-5 lg:p-6">
-            @include('layout.alert')
-            @yield('content')
+        <main class="flex-1 casis-main-area">
+            <div class="page-container">
+                @include('layout.alert')
+                @yield('content')
+            </div>
         </main>
 
         <footer class="main-footer">

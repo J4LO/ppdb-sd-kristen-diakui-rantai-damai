@@ -12,7 +12,7 @@
                             <h1><b>DATA ORANG TUA CALON SISWA</b></h1>
                         </div>
                         <div class="col-sm-6 mb-2 mb-sm-0 text-right">
-                            <form action="/data/ortu" method="get" class="form-inline d-flex justify-content-end">
+                            <form action="{{ route('dataortu') }}" method="get" class="form-inline d-flex justify-content-end">
                                 <div class="input-group input-group-sm w-100">
                                     <input type="text" name="search" class="form-control" placeholder="Cari Orang Tua Calon Siswa" value="{{ $search ?? '' }}">
                                     <div class="input-group-append">

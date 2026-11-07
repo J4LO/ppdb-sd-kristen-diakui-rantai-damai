@@ -2,35 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
-class pendaftaran extends Model
+class pendaftaran extends CalonSiswa
 {
-    use HasFactory;
-
-    protected $table = 'tb_pendaftaran';
-    protected $fillable = ['id_pendaftaran', 'casis_id', 'status', 'akte', 'kk','tgl_pendaftaran','foto','ajar_id'];
-    protected $primaryKey = 'id_pendaftaran';
-
+    // Alias model untuk menjaga kompatibilitas codebase lama
+    // Catatan: Pada struktur database baru, tb_pendaftaran telah dilebur ke dalam tb_calon_siswa.
     public function casis()
     {
-        return $this->belongsTo(casis::class, 'casis_id', 'id_casis');
+        return $this;
     }
-
-    public function tahunajar()
-    {
-        return $this->belongsTo(tahunajar::class, 'ajar_id', 'id_ajar');
-    }
-
-    public function pembayaran()
-    {
-        return $this->hasOne(pembayaran::class, 'casis_id', 'casis_id');
-    }
-
-    public function seleksi()
-    {
-        return $this->hasOne(selekasi::class, 'pendaftaran_id', 'id_pendaftaran');
-    }
-
 }

@@ -2,11 +2,11 @@
 <html>
 
 <head>
-    <title>laporan</title>
+    <title>Laporan Hasil Seleksi Calon Siswa</title>
     <style>
-        /* CSS untuk gaya cetak, Anda bisa menyesuaikan sesuai kebutuhan */
         body {
             font-family: Arial, sans-serif;
+            font-size: 12px;
         }
 
         table {
@@ -17,134 +17,146 @@
         th,
         td {
             border: 1px solid black;
-            padding: 4px; /* Mengurangi padding untuk memberi lebih banyak ruang */
+            padding: 6px;
             text-align: center;
-            word-wrap: break-word; /* Membuat teks membungkus jika terlalu panjang */
         }
 
         th {
-            background-color: cornflowerblue;
+            background-color: #059669;
             color: white;
+            font-weight: bold;
+            font-size: 11px;
         }
 
-        /* Mengatur lebar kolom untuk NIK, Nama, Tanggal, dan Keterangan */
-        th:nth-child(2),
-        td:nth-child(2),
-        th:nth-child(3),
-        td:nth-child(3),
-        th:nth-child(4),
-        td:nth-child(4),
-        th:nth-child(12),
-        td:nth-child(12) {
-            width: 12%;
+        .filter-info-box {
+            margin-bottom: 15px;
+            font-size: 11px;
+            color: #333333;
+            text-align: center;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 6px 10px;
         }
 
-        /* Mengatur lebar kolom untuk kolom nilai agar lebih kecil */
-        th:nth-child(5),
-        td:nth-child(5),
-        th:nth-child(6),
-        td:nth-child(6),
-        th:nth-child(7),
-        td:nth-child(7),
-        th:nth-child(8),
-        td:nth-child(8),
-        th:nth-child(9),
-        td:nth-child(9),
-        th:nth-child(10),
-        td:nth-child(10),
-        th:nth-child(11),
-        td:nth-child(11) {
-            width: 6%;
-        }
-
-        /* Mengatur lebar kolom untuk nomor urut */
-        th:nth-child(1),
-        td:nth-child(1) {
-            width: 4%;
-        }
-
-        /* CSS untuk mengatur posisi tengah tulisan h1 */
         .center {
             text-align: center;
         }
 
-        /* CSS untuk teks judul */
         .title {
-            font-size: 24px;
+            font-size: 18px;
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
         }
 
         .jalan {
-            font-size: 14px;
+            font-size: 11px;
             margin-bottom: 5px;
+            color: #444;
         }
 
-        /* CSS untuk garis panjang */
         .line {
             border: none;
             border-top: 2px solid black;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
     </style>
 </head>
 
 <body>
-    <br><br>
     <div class="center title">SD KRISTEN DIAKUI RANTAI DAMAI</div>
-    <div class="center jalan">Jl. Singosari, Jetis, Belang Wetan, Kec. Klaten Utara, Kab. Klaten, Jawa Tengah, 57438</div>
+    <div class="center jalan">Jl. Andi Pangeran, Desa Rantai Damai, Kec. Walenrang Timur, Kab. Luwu, Sulawesi Selatan</div>
     <div class="center line"></div>
 
-    <h3 style="text-align: center;">Laporan Hasil Seleksi Calon Siswa</h3>
+    <h3 style="text-align: center; margin-bottom: 6px; font-size: 15px; text-transform: uppercase;">
+        Laporan Rekapitulasi Hasil Seleksi Calon Siswa
+    </h3>
 
-    <table class="table" style="text-align: center;">
+    @php
+        $filters = [];
+        if (!empty($filterTahunAjaran)) {
+            $filters[] = "Tahun Ajaran: <strong>" . e($filterTahunAjaran->tahun_ajaran) . "</strong>";
+        } elseif (!empty($activeFilter['id_tahun_ajaran'])) {
+            $filters[] = "Tahun Ajaran ID: <strong>" . e($activeFilter['id_tahun_ajaran']) . "</strong>";
+        }
+
+        if (!empty($activeFilter['status'])) {
+            $filters[] = "Status Hasil: <strong>" . strtoupper(e($activeFilter['status'])) . "</strong>";
+        }
+
+        if (!empty($activeFilter['start_date']) || !empty($activeFilter['end_date'])) {
+            $tglMulai = !empty($activeFilter['start_date']) ? \Carbon\Carbon::parse($activeFilter['start_date'])->format('d/m/Y') : 'Awal';
+            $tglSelesai = !empty($activeFilter['end_date']) ? \Carbon\Carbon::parse($activeFilter['end_date'])->format('d/m/Y') : 'Akhir';
+            $filters[] = "Periode Observasi: <strong>{$tglMulai} s/d {$tglSelesai}</strong>";
+        }
+
+        if (!empty($activeFilter['search'])) {
+            $filters[] = "Kata Kunci: <strong>\"" . e($activeFilter['search']) . "\"</strong>";
+        }
+
+        $filters[] = "Jumlah Data: <strong>" . $data->count() . " Peserta</strong>";
+    @endphp
+
+    <div class="filter-info-box">
+        {!! implode(' &nbsp;|&nbsp; ', $filters) !!}
+    </div>
+
+    <table class="table">
         <thead>
             <tr>
-                <th class="bg-info text-white">No</th>
-                <th class="bg-info text-white">Nik</th>
-                <th class="bg-info text-white">Nama</th>
-                <th class="bg-info text-white">Tanggal Seleksi</th>
-                <th class="bg-info text-white">Baca</th>
-                <th class="bg-info text-white">Tulis</th>
-                <th class="bg-info text-white">Hitung</th>
-                <th class="bg-info text-white">Ngaji</th>
-                <th class="bg-info text-white">Wawancara</th>
-                <th class="bg-info text-white">Total Nilai</th>
-                <th class="bg-info text-white">Nilai Akhir</th>
-                <th class="bg-info text-white">Ket</th>
+                <th style="width: 25px;">No</th>
+                <th style="width: 95px;">No. Registrasi</th>
+                <th style="width: 105px;">NIK</th>
+                <th>Nama Lengkap</th>
+                <th style="width: 80px;">Tgl Observasi</th>
+                <th style="width: 45px;">Baca</th>
+                <th style="width: 45px;">Tulis</th>
+                <th style="width: 45px;">Hitung</th>
+                <th style="width: 55px;">Total</th>
+                <th style="width: 55px;">Rata-rata</th>
+                <th style="width: 90px;">Hasil Seleksi</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($data as $no => $value)
+            @forelse($data as $no => $value)
+            @php
+                $casis = $value->casis;
+                $isLulus = in_array($value->hasil_seleksi, ['Lolos', 'Lulus']);
+            @endphp
             <tr>
-                <td>{{ $no+1 }}</td>
-                <td>{{ $value->casis->nik}}</td>
-                <td>{{ $value->casis->nama}}</td>
-                <td>{{ \Carbon\Carbon::parse($value->tgl_seleksi)->format('d-m-Y') }}</td>
-                <td>{{ $value->nilai_baca?? '0' }}</td>
-                <td>{{ $value->nilai_tulis?? '0' }}</td>
-                <td>{{ $value->nilai_hitung?? '0' }}</td>
-                <td>{{ $value->nilai_ngaji?? '0' }}</td>
-                <td>{{ $value->nilai_wawancara?? '0' }}</td>
-                <td>{{ $value->total_nilai?? '0' }}</td>
-                <td>{{ $value->nilai_akhir?? '0' }}</td>
-                <td style="color: {{ $value->hasil_seleksi == 'Lolos' ? 'green' : 'red' }}">
-                    <strong>{{ $value->hasil_seleksi == 'Lolos' ? 'LULUS' : 'TIDAK LULUS' }}</strong>
+                <td>{{ $no + 1 }}</td>
+                <td>{{ $casis->no_registrasi ?? '-' }}</td>
+                <td>{{ $casis->nik ?? '-' }}</td>
+                <td style="text-align: left;">{{ $casis->nama ?? '-' }}</td>
+                <td>{{ $value->tgl_seleksi ? \Carbon\Carbon::parse($value->tgl_seleksi)->format('d-m-Y') : '-' }}</td>
+                <td>{{ $value->nilai_baca ?? 0 }}</td>
+                <td>{{ $value->nilai_tulis ?? 0 }}</td>
+                <td>{{ $value->nilai_hitung ?? 0 }}</td>
+                <td><strong>{{ $value->total_nilai ?? 0 }}</strong></td>
+                <td>{{ number_format($value->nilai_akhir ?? 0, 2) }}</td>
+                <td style="color: {{ $isLulus ? '#047857' : '#b91c1c' }}; font-weight: bold;">
+                    {{ $isLulus ? 'LULUS' : 'TIDAK LULUS' }}
                 </td>
             </tr>
-            @endforeach
+            @empty
+            <tr>
+                <td colspan="11" style="padding: 15px; color: #666;">Tidak ada data hasil seleksi yang sesuai kriteria filter</td>
+            </tr>
+            @endforelse
         </tbody>
     </table>
 
-    <br>
-    <div class="signature-section" style="text-align: right;">
-        <div class="signature">
-            <div>Klaten, <?php echo date('d-m-Y'); ?></div>
-            <div class="name">Yongki</div>
-            <br><br><br><br>
-            <div class="role">Petugas Seleksi</div>
-        </div>
-    </div>
+    <br><br>
+    <table style="border: none; width: 100%;">
+        <tr style="border: none;">
+            <td style="border: none; width: 60%;"></td>
+            <td style="border: none; width: 40%; text-align: center;">
+                <div>Rantai Damai, {{ date('d F Y') }}</div>
+                <div style="font-weight: bold;">Panitia Seleksi PPDB</div>
+                <br><br><br><br>
+                <div style="text-decoration: underline; font-weight: bold;">( Panitia PPDB )</div>
+            </td>
+        </tr>
+    </table>
 </body>
 
 </html>

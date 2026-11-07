@@ -2,11 +2,11 @@
 <html>
 
 <head>
-    <title>Laporan</title>
+    <title>Laporan Calon Siswa Tidak Lulus</title>
     <style>
-        /* CSS untuk gaya cetak, Anda bisa menyesuaikan sesuai kebutuhan */
         body {
             font-family: Arial, sans-serif;
+            font-size: 12px;
         }
 
         table {
@@ -17,104 +17,98 @@
         th,
         td {
             border: 1px solid black;
-            padding: 8px;
+            padding: 6px;
             text-align: center;
         }
 
         th {
             background-color: cornflowerblue;
-            /* Mengubah latar belakang menjadi biru */
             color: white;
-            /* Mengubah warna teks menjadi putih agar lebih terlihat */
+            font-weight: bold;
         }
 
-        /* CSS untuk mengatur posisi tengah tulisan h1 */
         .center {
             text-align: center;
         }
 
-        /* CSS untuk teks judul */
         .title {
-            font-size: 24px;
-            /* Menghapus teks "bold" */
+            font-size: 20px;
             font-weight: bold;
             margin-bottom: 5px;
         }
 
         .jalan {
-            font-size: 14px;
-            /* Menghapus teks "bold" */
-            /* font-weight: bold; */
+            font-size: 12px;
             margin-bottom: 5px;
+            color: #444;
         }
 
-        /* CSS untuk garis panjang */
         .line {
             border: none;
             border-top: 2px solid black;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
     </style>
 </head>
 
 <body>
-    <!-- Tambahkan jeda di atas judul -->
-    <br><br>
     <div class="center title">SD KRISTEN DIAKUI RANTAI DAMAI</div>
-    <!-- Menghapus teks "bold" pada teks berikut -->
-    <div class="center jalan">Jl. Singosari, Jetis, Belang Wetan, Kec. Klaten Utara, Kab. Klaten, Jawa Tengah, 57438</div>
-    <!-- Tambahkan garis panjang -->
+    <div class="center jalan">Jl. Andi Pangeran, Desa Rantai Damai, Kec. Walenrang Timur, Kab. Luwu, Sulawesi Selatan</div>
     <div class="center line"></div>
 
-    <h3 style="text-align: center;">Laporan Hasil Tidak Lulus Seleksi Calon Siswa</h3>
-    <!-- Tambahkan jeda setelah garis panjang
-        <br><br> -->
+    <h3 style="text-align: center; margin-bottom: 15px; color: #b91c1c;">Laporan Calon Siswa Baru Tidak Diterima (Tidak Lulus)</h3>
 
-    <table class="table" style="text-align: center;">
+    <table class="table">
         <thead>
             <tr>
-                <th class=" bg-info text-white">No</th>
-                <th class=" bg-info text-white">Nik</th>
-                <th class=" bg-info text-white">Nama</th>
-                <th class=" bg-info text-white">Tanggal Seleksi</th>
-                <th class=" bg-info text-white">Baca</th>
-                <th class=" bg-info text-white">Tulis</th>
-                <th class=" bg-info text-white">Hitung</th>
-                <th class=" bg-info text-white">Ngaji</th>
-                <th class=" bg-info text-white">Wawancara</th>
-                <th class=" bg-info text-white">Total Nilai</th>
-                <th class=" bg-info text-white">Nilai Akhir</th>
+                <th style="width: 25px; text-align: center;">No</th>
+                <th style="width: 100px; text-align: center;">No. Pendaftaran</th>
+                <th style="width: 105px; text-align: center;">NIK</th>
+                <th style="text-align: left;">Nama Lengkap</th>
+                <th style="width: 85px; text-align: center;">Tanggal Seleksi</th>
+                <th style="width: 50px; text-align: center;">Membaca</th>
+                <th style="width: 50px; text-align: center;">Menulis</th>
+                <th style="width: 50px; text-align: center;">Berhitung</th>
+                <th style="width: 60px; text-align: center;">Total Nilai</th>
+                <th style="width: 60px; text-align: center;">Rata-rata</th>
+                <th style="width: 100px; text-align: center;">Status</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($data as $no => $value)
+            @forelse($data as $no => $value)
             <tr>
-                <td>{{ $no+1 }}</td>
-                <td>{{ $value->casis->nik}}</td>
-                <td>{{ $value->casis->nama}}</td>
-                <td>{{ \Carbon\Carbon::parse($value->tgl_seleksi)->format('d-m-Y') }}</td>
-                <td>{{ $value->nilai_baca}}</td>
-                <td>{{ $value->nilai_tulis}}</td>
-                <td>{{ $value->nilai_hitung}}</td>
-                <td>{{ $value->nilai_ngaji}}</td>
-                <td>{{ $value->nilai_wawancara}}</td>
-                <td>{{ $value->total_nilai}}</td>
-                <td>{{ $value->nilai_akhir}}</td>
+                <td style="text-align: center;">{{ $no + 1 }}</td>
+                <td style="text-align: center; font-weight: bold;">{{ $value->casis->no_registrasi ?? '-' }}</td>
+                <td style="text-align: center;">{{ $value->casis->nik ?? '-' }}</td>
+                <td style="text-align: left; font-weight: bold;">{{ $value->casis->nama ?? '-' }}</td>
+                <td style="text-align: center;">{{ $value->tgl_seleksi ? \Carbon\Carbon::parse($value->tgl_seleksi)->format('d-m-Y') : '-' }}</td>
+                <td style="text-align: center;">{{ $value->nilai_baca ?? 0 }}</td>
+                <td style="text-align: center;">{{ $value->nilai_tulis ?? 0 }}</td>
+                <td style="text-align: center;">{{ $value->nilai_hitung ?? 0 }}</td>
+                <td style="text-align: center; font-weight: bold;">{{ $value->total_nilai ?? 0 }}</td>
+                <td style="text-align: center;">{{ number_format($value->nilai_akhir ?? 0, 2) }}</td>
+                <td style="text-align: center; color: red; font-weight: bold;">TIDAK LULUS</td>
             </tr>
-            @endforeach
+            @empty
+            <tr>
+                <td colspan="11" style="text-align: center; padding: 15px;">Tidak ada data siswa tidak lulus</td>
+            </tr>
+            @endforelse
         </tbody>
     </table>
 
-    <br>
-    <!-- Bagian tanda tangan -->
-    <div class="signature-section" style="text-align: right;">
-        <div class="signature">
-            <div>Klaten, <?php echo date('d-m-Y'); ?></div>
-            <div class="name">Yongki</div>
-            <br><br><br><br>
-            <div class="role">Petugas Seleksi</div>
-        </div>
-    </div>
+    <br><br>
+    <table style="border: none; width: 100%;">
+        <tr style="border: none;">
+            <td style="border: none; width: 60%;"></td>
+            <td style="border: none; width: 40%; text-align: center;">
+                <div>Rantai Damai, {{ date('d F Y') }}</div>
+                <div style="font-weight: bold;">Panitia Seleksi PPDB</div>
+                <br><br><br><br>
+                <div style="text-decoration: underline; font-weight: bold;">( Panitia PPDB )</div>
+            </td>
+        </tr>
+    </table>
 </body>
 
 </html>

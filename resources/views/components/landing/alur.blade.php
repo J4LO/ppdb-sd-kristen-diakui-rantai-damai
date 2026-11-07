@@ -62,7 +62,7 @@
                                 @else
                                     -<br>
                                 @endif
-                                <span class="text-xs font-normal text-slate-500">08.00-10.00 WITA</span>
+                                <span class="text-xs font-normal text-slate-500">08.00-10.00 {{ school_timezone_label() }}</span>
                             </span>
                         </div>
                         <div class="flex justify-between items-center">

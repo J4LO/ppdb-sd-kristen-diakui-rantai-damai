@@ -24,7 +24,7 @@
             padding: 20mm;
             margin: 0 auto;
             background-color: white;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
         }
 
         .header {
@@ -34,32 +34,27 @@
             padding-bottom: 10px;
         }
 
-        .logo {
-            width: 80px;
-            height: auto;
-            margin-bottom: 10px;
-        }
-
         .school-name {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
             color: #1a5f7a;
             margin: 0;
         }
 
         .school-address {
-            font-size: 12px;
-            color: #666;
+            font-size: 11px;
+            color: #555;
             margin: 5px 0;
         }
 
         .document-title {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             margin: 20px 0;
             text-align: center;
             color: #1a5f7a;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .content {
@@ -70,16 +65,17 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
+            font-size: 13px;
         }
 
         .info-table th,
         .info-table td {
-            padding: 10px;
+            padding: 9px 12px;
             border: 1px solid #ddd;
         }
 
         .info-table th {
-            width: 30%;
+            width: 32%;
             text-align: left;
             background-color: #f8f8f8;
             font-weight: bold;
@@ -88,9 +84,10 @@
 
         .status {
             display: inline-block;
-            padding: 5px 10px;
-            border-radius: 5px;
+            padding: 4px 10px;
+            border-radius: 4px;
             font-weight: bold;
+            font-size: 12px;
         }
 
         .status-success {
@@ -110,56 +107,64 @@
 
         .announcement {
             background-color: #e7f3fe;
-            border-left: 5px solid #2196F3;
-            padding: 15px;
+            border-left: 4px solid #2196F3;
+            padding: 12px;
             margin: 20px 0;
-            font-size: 16px;
+            font-size: 13px;
             color: #0c5460;
-        }
-
-        .payment-info {
-            background-color: #fff3cd;
-            border-left: 5px solid #ffc107;
-            padding: 15px;
-            margin: 20px 0;
-            font-size: 14px;
-            color: #856404;
+            line-height: 1.5;
         }
 
         .footer {
-            margin-top: 50px;
+            margin-top: 40px;
             text-align: right;
-            font-size: 14px;
+            font-size: 13px;
+        }
+
+        .signature-box {
+            display: inline-block;
+            text-align: center;
+            width: 220px;
         }
 
         .signature-line {
-            width: 200px;
+            margin-top: 70px;
             border-bottom: 1px solid #333;
-            margin-left: auto;
-            margin-top: 50px;
         }
 
         .notes {
             margin-top: 30px;
-            font-size: 12px;
-            color: #666;
+            font-size: 11px;
+            color: #555;
+            background: #fafafa;
+            padding: 12px;
+            border-left: 3px solid #2563eb;
         }
 
         .notes h4 {
             color: #1a5f7a;
+            margin: 0 0 6px 0;
+            font-size: 12px;
         }
 
-        .notes ul {
+        .notes ol {
             padding-left: 20px;
+            margin: 0;
+            list-style-type: decimal;
+        }
+
+        .notes ol li {
+            margin-bottom: 4px;
+            line-height: 1.5;
         }
 
         @media print {
             body {
                 background-color: white;
             }
-
             .container {
                 box-shadow: none;
+                padding: 15mm;
             }
         }
     </style>
@@ -168,88 +173,72 @@
 <body onload="window.print()">
     <div class="container">
         <div class="header">
-            <img src="{{ asset('images/logo-sd-kristen-diakui-rantai-damai.png') }}" alt="Logo Sekolah" class="logo">
             <h1 class="school-name">SD KRISTEN DIAKUI RANTAI DAMAI</h1>
             <p class="school-address">Jl. Andi Pangeran, Desa Rantai Damai, Kec. Walenrang Timur, Kabupaten Luwu.</p>
         </div>
 
-        <h2 class="document-title">Bukti Pembayaran dan Daftar Ulang</h2>
+        <h2 class="document-title">Tanda Bukti Pembayaran dan Daftar Ulang</h2>
+
+        @php
+            $calonSiswa = $daftarUlang->calonSiswa ?? ($casis ?? $daftarUlang->pendaftaran?->casis);
+            $namaSiswa = $calonSiswa?->nama_calon_siswa ?? ($calonSiswa?->nama ?? '-');
+            $noPendaftaran = $calonSiswa?->no_registrasi ?? ($calonSiswa?->no_pendaftaran ?? '-');
+        @endphp
 
         <div class="content">
             <table class="info-table">
                 <tr>
-                    <th>NIK</th>
-                    <td>{{ $daftarUlang->pendaftaran->casis->nik }}</td>
+                    <th>No. Pendaftaran</th>
+                    <td><strong>{{ $noPendaftaran }}</strong></td>
                 </tr>
                 <tr>
-                    <th>Nama Lengkap</th>
-                    <td>{{ $daftarUlang->pendaftaran->casis->nama }}</td>
+                    <th>Nama Lengkap Siswa</th>
+                    <td><strong>{{ $namaSiswa }}</strong></td>
                 </tr>
                 <tr>
-                    <th>Metode Pembayaran</th>
-                    @if($daftarUlang->metode_pembayaran == 'Cicilan')
-                    <td><b>{{ $daftarUlang->metode_pembayaran }}</b>
-                   (Durasi Pembayaran: 3 Bulan)</td>
-                    @else
+                    <th>Tahun Ajaran</th>
+                    <td>{{ $tahunAjar->tahun_ajaran ?? ($tahunAjar->tahun_ajar ?? date('Y')) }}</td>
+                </tr>
+                <tr>
+                    <th>Opsi Pembayaran</th>
                     <td>{{ $daftarUlang->metode_pembayaran }}</td>
-                    @endif
                 </tr>
                 <tr>
-                    <th>Jumlah Pembayaran</th>
-                    <td>Rp {{ number_format($daftarUlang->jumlah_bayar, 0, ',', '.') }}</td>
+                    <th>Nominal Terbayar</th>
+                    <td><strong>Rp {{ number_format($daftarUlang->jumlah_bayar, 0, ',', '.') }}</strong></td>
                 </tr>
                 <tr>
-                    <th>Status Pembayaran</th>
+                    <th>Status Administrasi</th>
                     <td>
-                        <span class="status {{ $daftarUlang->status_bayar == 'Berhasil' ? 'status-success' : ($daftarUlang->status_bayar == 'Menunggu Konfirmasi' ? 'status-pending' : 'status-failed') }}">
-                            {{ $daftarUlang->status_bayar }}
-                        </span>
+                        {{ $daftarUlang->status_daftar_ulang == 'Selesai' ? 'Selesai (Lunas Penuh)' : $daftarUlang->status_bayar }}
                     </td>
                 </tr>
                 <tr>
-                    <th>Tanggal Pembayaran</th>
-                    <td>{{ date('d/m/Y H:i', strtotime($daftarUlang->tgl_daftar_ulang)) }}</td>
+                    <th>Tanggal Konfirmasi</th>
+                    <td>{{ $daftarUlang->tgl_daftar_ulang ? \Carbon\Carbon::parse($daftarUlang->tgl_daftar_ulang)->format('d F Y') : date('d F Y') }}</td>
                 </tr>
             </table>
 
             <div class="announcement">
-                Pembayaran Daftar Ulang telah diterima. Terima kasih atas partisipasi Anda dalam proses penerimaan siswa baru di SD Kristen Diakui Rantai Damai.
+                Tanda bukti ini menyatakan bahwa administrasi pendaftaran ulang calon siswa di atas telah tercatat secara resmi di sistem PPDB SD Kristen Diakui Rantai Damai.
             </div>
 
-            @if($daftarUlang->metode_pembayaran == 'Cicilan')
-            <div class="payment-info">
-                <h4>Informasi Pelunasan:</h4>
-                <p>Berdasarkan metode pembayaran yang Anda pilih (Cicilan), mohon perhatikan ketentuan berikut:</p>
-                <ul>
-                    <li>Pelunasan harus diselesaikan dalam jangka waktu maksimal 3 (tiga) bulan terhitung dari tanggal pembayaran pertama.</li>
-                    <li>Batas akhir pelunasan: <strong>{{ date('d F Y', strtotime($daftarUlang->tgl_daftar_ulang . ' + 3 months')) }}</strong></li>
-                    <li>Total yang harus dilunasi: <strong>Rp {{ number_format($daftarUlang->total_biaya - $daftarUlang->jumlah_bayar, 0, ',', '.') }}</strong></li>
-                    <li>Pembayaran dapat dilakukan melalui offline atau transfer ke rekening sekolah:
-                        <br>Bank BNI
-                        <br>No. Rekening: 1234567890
-                        <br>Atas Nama: SD Kristen Diakui Rantai Damai
-                    </li>
-                </ul>
-                <p>Harap simpan bukti pembayaran setiap cicilan dan laporkan ke bagian administrasi sekolah.</p>
+            <div class="notes">
+                <h4>Informasi dan Ketentuan:</h4>
+                <ol>
+                    <li>Tanda bukti pendaftaran ulang ini adalah dokumen sah dan harap disimpan oleh orang tua/wali murid.</li>
+                    <li>Informasi mengenai pembagian kelas dan jadwal tahun ajaran baru akan diberitahukan pada saat penyerahan berkas ke sekolah.</li>
+                    <li>Bagi yang memilih metode pembayaran cicilan, batas pelunasan sisa biaya adalah maksimal 3 bulan sejak tahun ajaran dimulai.</li>
+                </ol>
             </div>
-            @endif
         </div>
 
         <div class="footer">
-            <p>Klaten, {{ date('d F Y') }}</p>
-            <p><strong>Panitia Penerimaan Siswa Baru</strong></p>
-            <!-- <div class="signature-line"></div> -->
-            <!-- <p><strong>(Panitia PSB)</strong></p> -->
-        </div>
-
-        <div class="notes">
-            <h4>Catatan Penting:</h4>
-            <ul>
-                <li>Bukti pembayaran ini adalah dokumen resmi dan harap disimpan dengan baik.</li>
-                <li>Jika ada pertanyaan atau kendala, silakan hubungi panitia penerimaan siswa baru di nomor (0272) 321081.</li>
-                <li>Informasi lebih lanjut mengenai jadwal dan persiapan masuk sekolah akan disampaikan kemudian.</li>
-
-            </ul>
+            <div class="signature-box">
+                <p>Rantai Damai, {{ date('d F Y') }}<br>Panitia Penerimaan Siswa Baru,</p>
+                <div class="signature-line"></div>
+                <p><strong>Panitia PPDB</strong></p>
+            </div>
         </div>
     </div>
 </body>

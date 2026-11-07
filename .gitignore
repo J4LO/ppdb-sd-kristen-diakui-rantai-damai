@@ -17,3 +17,7 @@ yarn-error.log
 /.idea
 /.vscode
 /docs
+/database/backups/
+scratch/
+database/*.sql
+screenshots/

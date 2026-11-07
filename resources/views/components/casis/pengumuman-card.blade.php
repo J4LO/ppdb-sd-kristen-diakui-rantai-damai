@@ -1,69 +1,140 @@
-<div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6 hover:shadow-md transition-shadow">
-    <div class="bg-linear-to-r from-green-600 to-green-500 px-6 py-4 flex items-center gap-3">
-        <i class="fas fa-bullhorn text-white text-lg"></i>
-        <h3 class="font-bold text-white font-heading text-lg">Pengumuman PPDB</h3>
+@php
+    // Nama bulan Indonesia untuk format tanggal
+    $bulanId = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    $formatTgl = function($tgl) use ($bulanId) {
+        if (!$tgl) return '-';
+        $d = \Carbon\Carbon::parse($tgl);
+        return $d->format('d') . ' ' . $bulanId[(int)$d->format('n')] . ' ' . $d->format('Y');
+    };
+
+    $today = \Carbon\Carbon::now()->startOfDay();
+    $tglMulai = $tahunajar->mulai_pendaftaran ? \Carbon\Carbon::parse($tahunajar->mulai_pendaftaran)->startOfDay() : null;
+    $tglBatas = $tahunajar->batas_pendaftaran ? \Carbon\Carbon::parse($tahunajar->batas_pendaftaran)->startOfDay() : null;
+    $tglSeleksi = $tahunajar->tgl_seleksi ? \Carbon\Carbon::parse($tahunajar->tgl_seleksi)->startOfDay() : null;
+
+    // Timeline Jadwal 3 Tahap
+    $jadwalItems = [
+        [
+            'num'       => 1,
+            'label'     => 'Pendaftaran Dibuka',
+            'tgl'       => $formatTgl($tahunajar->mulai_pendaftaran),
+            'jam'       => null,
+            'status'    => ($tglMulai && $today->gte($tglMulai)) ? 'selesai' : 'belum',
+            'relatif'   => ($tglMulai && $today->isSameDay($tglMulai)) ? 'Hari ini' : (($tglMulai && $today->gt($tglMulai)) ? 'Sudah dibuka' : 'Mendatang'),
+        ],
+        [
+            'num'       => 2,
+            'label'     => 'Pendaftaran Ditutup',
+            'tgl'       => $formatTgl($tahunajar->batas_pendaftaran),
+            'jam'       => null,
+            'status'    => ($tglBatas && $today->gt($tglBatas)) ? 'selesai' : (($tglBatas && $today->between($tglMulai ?? $today, $tglBatas)) ? 'aktif' : 'belum'),
+            'relatif'   => ($tglBatas && $today->gt($tglBatas)) ? 'Selesai' : (($tglBatas && $today->isSameDay($tglBatas)) ? 'Hari ini terakhir' : ($tglBatas ? 'sisa ' . $today->diffInDays($tglBatas) . ' hari' : '-')),
+        ],
+        [
+            'num'       => 3,
+            'label'     => 'Seleksi Observasi',
+            'tgl'       => $formatTgl($tahunajar->tgl_seleksi),
+            'jam'       => '08:00 – 10:00 ' . school_timezone_label(),
+            'status'    => ($tglSeleksi && $today->gt($tglSeleksi)) ? 'selesai' : (($tglSeleksi && $today->isSameDay($tglSeleksi)) ? 'aktif' : (($tglBatas && $today->gt($tglBatas)) ? 'aktif' : 'belum')),
+            'relatif'   => ($tglSeleksi && $today->gt($tglSeleksi)) ? 'Selesai' : (($tglSeleksi && $today->isSameDay($tglSeleksi)) ? 'Hari ini' : (($tglBatas && $today->gt($tglBatas)) ? 'Berikutnya' : 'Sesuai jadwal')),
+        ],
+    ];
+@endphp
+
+<div id="card-pengumuman" class="dash-card">
+
+    {{-- Header Kartu Jadwal --}}
+    <div class="dc-header shrink-0">
+        <div class="flex items-center gap-3 min-w-0">
+            <div class="dc-icon-wrap dc-icon-emerald shrink-0">
+                <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+            </div>
+            <div class="min-w-0">
+                <h3 class="dc-title">Jadwal PPDB</h3>
+                <span class="dc-subtitle">Tanggal penting seleksi</span>
+            </div>
+        </div>
+        {{-- Satu-satunya badge status PPDB di halaman --}}
+        <span class="dc-badge dc-badge-emerald shrink-0">
+            <span class="dc-badge-dot" aria-hidden="true"></span>
+            {{ $tahunajar->status ?? 'Aktif' }}
+        </span>
     </div>
-    <div class="p-6">
-        <div class="mb-6 pb-6 border-b border-slate-100">
-            <h4 class="text-xl font-bold text-slate-800 font-heading mb-1">Selamat Datang, <span class="text-green-600">{{ Auth::user()->name }}</span>!</h4>
-            <p class="text-slate-500 text-sm">Berikut adalah detail informasi periode pendaftaran Anda.</p>
+
+    {{-- Body: Timeline Jadwal & Kotak Info --}}
+    <div class="dc-body flex-1 flex flex-col justify-between">
+
+        {{-- Timeline Jadwal Vertikal Rata Kiri --}}
+        <ol class="dc-timeline flex-1" aria-label="Jadwal penting PPDB">
+            @foreach($jadwalItems as $item)
+                <li class="dc-tl-item {{ $loop->last ? 'dc-tl-item-last' : '' }}">
+
+                    {{-- Rail: Badge Status + Garis Vertikal --}}
+                    <div class="dc-tl-rail" aria-hidden="true">
+                        @if($item['status'] === 'selesai')
+                            <div class="dc-tl-badge dc-tl-done">
+                                <i class="fas fa-check dc-tl-icon"></i>
+                            </div>
+                        @elseif($item['status'] === 'aktif')
+                            <div class="dc-tl-badge dc-tl-active">
+                                <span class="dc-tl-num">{{ $item['num'] }}</span>
+                            </div>
+                        @else
+                            <div class="dc-tl-badge dc-tl-pending">
+                                <span class="dc-tl-num">{{ $item['num'] }}</span>
+                            </div>
+                        @endif
+
+                        @if(!$loop->last)
+                            <div class="dc-tl-line {{ $item['status'] === 'selesai' ? 'dc-tl-line-done' : 'dc-tl-line-pending' }}"></div>
+                        @endif
+                    </div>
+
+                    {{-- Konten Jadwal: Rata Kiri --}}
+                    <div class="dc-tl-content">
+                        <span class="sr-only">
+                            {{ $item['label'] }}, status: {{ $item['status'] === 'selesai' ? 'selesai' : ($item['status'] === 'aktif' ? 'berikutnya' : 'belum') }}
+                        </span>
+
+                        {{-- Label Kegiatan --}}
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-sm font-semibold text-slate-600 leading-snug">
+                                {{ $item['label'] }}
+                            </span>
+                            @if(!empty($item['relatif']))
+                                <span class="dc-badge-tag {{ $item['status'] === 'selesai' ? 'dc-tag-done' : ($item['status'] === 'aktif' ? 'dc-tag-active' : 'dc-tag-pending') }}">
+                                    {{ $item['relatif'] }}
+                                </span>
+                            @endif
+                        </div>
+
+                        {{-- Nilai Tanggal --}}
+                        <p class="text-base sm:text-[17px] font-bold text-slate-900 leading-tight mt-1 mb-0">
+                            {{ $item['tgl'] }}
+                        </p>
+
+                        {{-- Baris Jam (khusus seleksi) --}}
+                        @if(!empty($item['jam']))
+                            <p class="text-sm font-medium text-slate-500 flex items-center gap-1.5 mt-1 mb-0">
+                                <i class="fas fa-clock text-xs text-purple-600" aria-hidden="true"></i>
+                                <span>{{ $item['jam'] }}</span>
+                            </p>
+                        @endif
+                    </div>
+
+                </li>
+            @endforeach
+        </ol>
+
+        {{-- Kotak Info Tempel di Dasar Kartu --}}
+        <div class="dc-infobox mt-auto">
+            <span class="dc-infobox-icon shrink-0" aria-hidden="true">
+                <i class="fas fa-info-circle"></i>
+            </span>
+            <p class="dc-infobox-text">
+                Unduh hasil seleksi pada menu <strong>Pengumuman</strong> setelah menyelesaikan observasi.
+            </p>
         </div>
-        
-        <div class="space-y-4 mb-6">
-            <div class="flex items-start gap-4">
-                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                    <i class="fas fa-calendar-alt"></i>
-                </div>
-                <div>
-                    <p class="text-sm text-slate-500 font-medium">Tahun Ajaran</p>
-                    <p class="font-bold text-slate-800">{{ $tahunajar->tahun_ajar }}</p>
-                </div>
-            </div>
-            
-            <div class="flex items-start gap-4">
-                <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                    <i class="fas fa-hourglass-start"></i>
-                </div>
-                <div>
-                    <p class="text-sm text-slate-500 font-medium">Pendaftaran Dimulai</p>
-                    <p class="font-bold text-slate-800">{{ \Carbon\Carbon::parse($tahunajar->mulai_pendaftaran)->format('d-m-Y') }}</p>
-                </div>
-            </div>
 
-            <div class="flex items-start gap-4">
-                <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0">
-                    <i class="fas fa-hourglass-end"></i>
-                </div>
-                <div>
-                    <p class="text-sm text-slate-500 font-medium">Pendaftaran Berakhir</p>
-                    <p class="font-bold text-slate-800">{{ \Carbon\Carbon::parse($tahunajar->batas_pendaftaran)->format('d-m-Y') }}</p>
-                </div>
-            </div>
-
-            <div class="flex items-start gap-4">
-                <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <div>
-                    <p class="text-sm text-slate-500 font-medium">Tanggal Seleksi Observasi</p>
-                    <p class="font-bold text-slate-800">{{ \Carbon\Carbon::parse($tahunajar->tgl_seleksi)->format('d-m-Y') }} <span class="text-xs font-normal text-slate-500">(08:00 - 10:00 WITA)</span></p>
-                </div>
-            </div>
-
-            <div class="flex items-start gap-4">
-                <div class="w-10 h-10 rounded-xl bg-green-50 text-green-600 flex items-center justify-center shrink-0">
-                    <i class="fas fa-info-circle"></i>
-                </div>
-                <div>
-                    <p class="text-sm text-slate-500 font-medium">Status PPDB</p>
-                    <span class="inline-block mt-1 px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">{{ $tahunajar->status }}</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-3">
-            <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
-            <p class="text-sm text-blue-800">Hasil Seleksi dapat diunduh pada menu <strong>Pengumuman</strong> setelah Anda menyelesaikan semua TAHAP pendaftaran dan seleksi.</p>
-        </div>
     </div>
 </div>

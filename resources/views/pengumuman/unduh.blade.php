@@ -3,227 +3,312 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Siswa</title>
+    <title>Surat Keterangan Hasil Seleksi</title>
     <style>
+        @page {
+            size: A4 portrait;
+            margin: 12mm 20mm 12mm 20mm;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: Arial, Helvetica, sans-serif;
             margin: 0;
             padding: 0;
-        }
-
-        .container {
-            margin: 0 auto;
-            padding: 20px;
-            width: 80%;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        .header h1,
-        .header h2 {
-            margin: 0;
-        }
-
-        .content {
-            margin: 10px 0;
-        }
-
-        .content p {
-            margin-top: -10px;
-        }
-
-        .content table {
-            width: 100%;
-            margin: 20px 0;
-            border-collapse: collapse;
-        }
-
-        .content table th,
-        .content table td {
-            padding: 8px;
-            text-align: left;
-            border: 1px solid #ddd;
-        }
-
-        .content .announcement {
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            text-align: center;
-            font-weight: bold;
-        }
-
-        .announcement.success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .announcement.danger {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .footer {
-            margin-top: 10px;
-        }
-
-        .signature {
-            text-align: right;
-            margin-top: 20px;
+            color: #111827;
+            font-size: 10pt;
+            line-height: 1.4;
         }
 
         .kop-surat {
             text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .kop-surat img {
-            max-width: 100px;
             margin-bottom: 10px;
         }
 
-        .kop-surat h1,
-        .kop-surat p {
-            color: #333;
-            font-size: 18px;
-            margin: 5px 0;
+        .kop-surat h1 {
+            font-size: 16pt;
+            margin: 0;
+            font-weight: bold;
+            color: #111827;
+            letter-spacing: 0.5px;
         }
 
-        .kop-surat .jalan {
-            color: #555;
-            font-size: 14px;
-            margin: 5px 0;
+        .kop-surat p {
+            font-size: 9pt;
+            margin: 3px 0 0 0;
+            color: #4b5563;
         }
 
         .kop-surat .line {
-            border-top: 2px solid #333;
-            margin: 10px 0;
+            border-top: 2px solid #111827;
+            border-bottom: 1px solid #111827;
+            height: 2px;
+            margin: 8px 0 12px 0;
         }
 
-        h2 {
+        .judul-surat {
             text-align: center;
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 22px;
+            margin-bottom: 12px;
         }
 
-        h3 {
+        .judul-surat h3 {
+            font-size: 13pt;
+            margin: 0;
+            text-decoration: underline;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #111827;
+        }
+
+        .content {
+            margin: 0;
+        }
+
+        .p-intro {
+            margin: 0 0 8px 0;
+            text-align: justify;
+        }
+
+        /* Tabel Identitas Siswa */
+        .table-identitas {
+            width: 100%;
+            margin: 6px 0 12px 0;
+            border-collapse: collapse;
+        }
+
+        .table-identitas td {
+            padding: 3px 4px;
+            font-size: 10pt;
+            vertical-align: top;
+        }
+
+        .table-identitas .col-label {
+            width: 180px;
+            color: #374151;
+        }
+
+        .table-identitas .col-separator {
+            width: 15px;
+            text-align: center;
+            color: #374151;
+        }
+
+        .table-identitas .col-value {
+            color: #111827;
+        }
+
+        /* Tabel Nilai Observasi (Fixed Width 100%, 20% each column) */
+        .subjudul-nilai {
+            margin: 10px 0 6px 0;
+            font-weight: bold;
+            font-size: 10pt;
+            color: #1f2937;
+        }
+
+        .table-nilai {
+            width: 100%;
+            margin: 0 0 12px 0;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .table-nilai th,
+        .table-nilai td {
+            border: 1px solid #4b5563;
+            padding: 6px 4px;
+            text-align: center;
+            font-size: 9.5pt;
+            width: 20%;
+        }
+
+        .table-nilai th {
+            background-color: #f3f4f6;
+            font-weight: bold;
+            color: #111827;
+        }
+
+        .table-nilai td {
+            color: #1f2937;
+        }
+
+        /* Status Hasil Seleksi Banner */
+        .announcement {
+            padding: 9px 14px;
+            margin: 12px 0;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 12pt;
+            letter-spacing: 0.5px;
+        }
+
+        .announcement.success {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1.5px solid #86efac;
+        }
+
+        .announcement.danger {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1.5px solid #fca5a5;
+        }
+
+        .p-closing {
+            margin: 8px 0 12px 0;
+            text-align: justify;
+        }
+
+        /* Tanda Tangan */
+        .footer-ttd {
+            width: 100%;
+            margin-top: 8px;
+            margin-bottom: 12px;
+        }
+
+        .signature {
+            float: right;
+            text-align: center;
+            width: 220px;
+            font-size: 10pt;
+        }
+
+        .clear {
+            clear: both;
+        }
+
+        /* Catatan Daftar Ulang */
+        .note-box {
+            margin-top: 8px;
+            font-size: 9pt;
+            color: #374151;
+            background-color: #f9fafb;
+            padding: 8px 12px;
+            border: 1px solid #e5e7eb;
+            border-left: 4px solid #2563eb;
+            border-radius: 4px;
+            line-height: 1.4;
+        }
+
+        .note-title {
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 3px;
+            font-size: 9.5pt;
+        }
+
+        .note-list {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        .note-list li {
+            margin-bottom: 2px;
+        }
+
+        .note-list li:last-child {
             margin-bottom: 0;
-        }
-
-        .data-item {
-            margin: 15px 0;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-        }
-
-        .data-label {
-            font-weight: bold;
-            color: #333;
-            min-width: 200px;
-            position: relative;
-            padding-right: 10px;
-        }
-
-        .data-label::after {
-            content: ":";
-            position: absolute;
-            right: 0;
-        }
-
-        .data-value {
-            flex: 1;
-            padding-left: 10px;
-            background-color: #e9f5ff;
-            border-radius: 5px;
-            padding: 5px 10px;
-        }
-
-        .note {
-            text-align: left;
-            font-weight: bold;
-            margin-top: 10px;
-            font-size: small;
-        }
-
-        .note ul {
-            list-style-type: none;
-            padding: 0;
-        }
-
-        .note li {
-            margin-bottom: 5px;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <div class="kop-surat">
-            <h1>SD KRISTEN DIAKUI RANTAI DAMAI</h1>
-            <p style="font-size: small;">Jl. Andi Pangeran, Desa Rantai Damai, Kec. Walenrang Timur, Kabupaten Luwu</p>
-            <div class="line"></div>
-            <h3>SURAT KETERANGAN</h3>
-        </div>
-        <div class="content">
-            <p>Berdasarkan kegiatan tes/seleksi yang diselenggarakan panitia penerima siswa baru tahun pelajaran <b>{{ $aktivTahunAjaran->tahun_ajar ?? date('Y') }}</b>, maka sebagai tindak lanjut dari hasil tes tersebut kami menetapkan bahwa siswa berikut ini:</p>
-            <table>
-                <tr>
-                    <th style="width: 350px;">NIK</th>
-                    <td>: {{ $data->nik ?? 'Tidak Ada Data' }}</td>
-                </tr>
-                <tr>
-                    <th>Nama Lengkap</th>
-                    <td>: {{ $data->nama ?? 'Tidak Ada Data' }}</td>
-                </tr>
-                <tr>
-                    <th>Tempat, Tanggal Lahir</th>
-                    <td>: {{ $data->tempat_lahir ?? 'Tidak Ada Data' }}, {{ \Carbon\Carbon::parse($data->tanggal_lahir ?? 'Tidak Ada Data')->format('d-m-Y') }}</td>
-                </tr>
-                <tr>
-                    <th>Jenis Kelamin</th>
-                    <td>: {{ $data->jenis_kelamin ?? 'Tidak Ada Data' }}</td>
-                </tr>
-                <tr>
-                    <th>Nilai Akhir</th>
-                    <td>: {{ $data->nilai_akhir ?? 'Tidak Ada Data' }}</td>
-                </tr>
-            </table>
-            <div class="announcement {{ $data->hasil_seleksi === 'Lolos' ? 'success' : 'danger' }}">
-                @if($data->hasil_seleksi === 'Lolos')
-                Dinyatakan Lulus Seleksi dan Diterima sebagai Siswa Baru
-                @else
-                Belum Lulus Seleksi
-                @endif
-            </div>
+    <div class="kop-surat">
+        <h1>SD KRISTEN DIAKUI RANTAI DAMAI</h1>
+        <p>Jl. Andi Pangeran, Desa Rantai Damai, Kec. Walenrang Timur, Kabupaten Luwu, Sulawesi Selatan</p>
+        <div class="line"></div>
+    </div>
 
-            <p>Demikian pengumuman ini dibuat untuk dapat dipergunakan sebagaimana mestinya.</p>
+    <div class="judul-surat">
+        <h3>SURAT KETERANGAN HASIL SELEKSI</h3>
+    </div>
+
+    <div class="content">
+        <p class="p-intro">
+            Berdasarkan kegiatan observasi dan evaluasi seleksi calon peserta didik baru Tahun Ajaran <strong>{{ $aktivTahunAjaran->tahun_ajaran ?? ($aktivTahunAjaran->tahun_ajar ?? date('Y')) }}</strong>, panitia penerimaan siswa baru menerangkan bahwa calon siswa:
+        </p>
+
+        <table class="table-identitas">
+            <tr>
+                <td class="col-label">No. Pendaftaran</td>
+                <td class="col-separator">:</td>
+                <td class="col-value"><strong>{{ $casis->no_registrasi ?? ($data->calonSiswa->no_registrasi ?? '-') }}</strong></td>
+            </tr>
+            <tr>
+                <td class="col-label">Nama Lengkap</td>
+                <td class="col-separator">:</td>
+                <td class="col-value"><strong>{{ $casis->nama_calon_siswa ?? ($data->calonSiswa->nama_calon_siswa ?? '-') }}</strong></td>
+            </tr>
+            <tr>
+                <td class="col-label">Tempat, Tanggal Lahir</td>
+                <td class="col-separator">:</td>
+                <td class="col-value">{{ $casis->tmpt_lahir ?? '-' }}, {{ $casis->tgl_lahir ? \Carbon\Carbon::parse($casis->tgl_lahir)->translatedFormat('d F Y') : '-' }}</td>
+            </tr>
+            <tr>
+                <td class="col-label">Jenis Kelamin</td>
+                <td class="col-separator">:</td>
+                <td class="col-value">{{ $casis->jenis_kelamin ?? '-' }}</td>
+            </tr>
+            <tr>
+                <td class="col-label">Nama Orang Tua (Ayah)</td>
+                <td class="col-separator">:</td>
+                <td class="col-value">{{ $casis->nama_ayah ?? ($data->calonSiswa->nama_ayah ?? '-') }}</td>
+            </tr>
+        </table>
+
+        <div class="subjudul-nilai">Rincian Nilai Observasi:</div>
+        <table class="table-nilai">
+            <thead>
+                <tr>
+                    <th>Membaca</th>
+                    <th>Menulis</th>
+                    <th>Berhitung</th>
+                    <th>Total Nilai</th>
+                    <th>Nilai Rata-Rata</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ $data->nilai_baca ?? 0 }}</td>
+                    <td>{{ $data->nilai_tulis ?? 0 }}</td>
+                    <td>{{ $data->nilai_hitung ?? 0 }}</td>
+                    <td><strong>{{ $data->total_nilai ?? 0 }}</strong></td>
+                    <td><strong>{{ $data->total_nilai !== null ? number_format($data->total_nilai / 3, 1) : '-' }}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+
+        @php
+            $isLulus = in_array($data->hasil_seleksi, ['Lulus', 'Lolos']);
+        @endphp
+        <div class="announcement {{ $isLulus ? 'success' : 'danger' }}">
+            @if($isLulus)
+                DINYATAKAN LULUS SELEKSI
+            @else
+                BELUM DINYATAKAN LULUS SELEKSI
+            @endif
         </div>
-        <div class="footer">
+
+        <p class="p-closing">
+            Demikian surat keterangan hasil seleksi ini diterbitkan untuk dipergunakan sebagaimana mestinya.
+        </p>
+
+        <div class="footer-ttd">
             <div class="signature">
-                <p>Klaten, {{ date('d M Y') }}</p>
-                <p>Kepala Sekolah,</p>
-                <br>
+                <p>Rantai Damai, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}<br>Kepala Sekolah,</p>
+                <div style="height: 48px;"></div>
                 <p><strong>Serni, S.Pd.K</strong></p>
             </div>
+            <div class="clear"></div>
         </div>
-        @if($data->hasil_seleksi === 'Lolos')
-            <div class="note">
-                <p>Catatan:</p>
-                <ul>
-                    <li>1. Daftar ulang dilaksanakan pada tanggal {{ $aktivTahunAjaran ? \Carbon\Carbon::parse($aktivTahunAjaran->tgl_seleksi)->format('d F Y') : '-' }} s.d {{ $aktivTahunAjaran ? \Carbon\Carbon::parse($aktivTahunAjaran->batas_pendaftaran)->addDays(7)->format('d F Y') : '-' }}.</li>
-                    <li>2. Apabila pada tanggal tersebut tidak melakukan daftar ulang, maka yang bersangkutan dianggap mengundurkan diri.</li>
-                </ul>
+
+        @if($isLulus)
+            <div class="note-box">
+                <div class="note-title">Catatan Daftar Ulang:</div>
+                <ol class="note-list">
+                    <li>Calon siswa yang dinyatakan <strong>LULUS</strong> wajib melakukan proses daftar ulang sesuai jadwal yang ditentukan sekolah.</li>
+                    <li>Daftar ulang dapat dilakukan secara daring melalui menu <strong>Daftar Ulang</strong> pada portal PPDB atau langsung di sekretariat sekolah.</li>
+                    <li>Apabila sampai dengan batas waktu yang ditentukan tidak melakukan daftar ulang, maka calon siswa dianggap <strong>mengundurkan diri</strong>.</li>
+                </ol>
             </div>
         @endif
     </div>

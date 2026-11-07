@@ -3,9 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\tahunajar;
+use App\Models\TahunAjaran;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class LoginController extends Controller
@@ -13,34 +14,56 @@ class LoginController extends Controller
     public function registrasi(Request $request)
     {
         if ($request->input('captcha_failed')) {
-            // Captcha gagal, kirim pesan kesalahan ke sisi klien
             return response()->json([
                 'message' => 'Verifikasi Captcha gagal. Silakan coba lagi.'
             ]);
         }
 
-        $tahunAjarBerlangsung = tahunajar::where('status', 'Berlangsung')->first();
+        $tahunAjarBerlangsung = TahunAjaran::where('status', 'Berlangsung')->first();
 
         if (!$tahunAjarBerlangsung) {
-            // Jika tidak ada tahun ajaran yang berlangsung, kembalikan dengan pesan error
             return redirect()->back()->with('error', 'Pendaftaran Siswa Baru Telah Ditutup');
         }
 
-        // Jika ada tahun ajaran yang berlangsung, lanjutkan proses registrasi
-        $user = User::create([
-            'name' => $request->input('name'),
-            'email' => $request->input('email'),
-            'password' => bcrypt($request->input('password')),
-            'role' => 'Calon Siswa',
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:225',
+            'email' => 'required|email|max:225|unique:tb_users,email',
+            'password' => 'required|min:6',
         ]);
 
-        return redirect('/')->with('success', 'Registrasi berhasil!');
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput($request->except('password'));
+        }
+
+        $name = $request->input('name');
+        $email = $request->input('email');
+
+        // Buat username unik berdasarkan email / nama
+        $baseUsername = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', explode('@', $email)[0]));
+        $username = $baseUsername ?: 'user_' . time();
+        $counter = 1;
+        while (User::where('username', $username)->exists()) {
+            $username = $baseUsername . $counter++;
+        }
+
+        // Simpan data user dengan role 'Orang Tua'
+        $user = User::create([
+            'nama' => $name,
+            'username' => $username,
+            'email' => $email,
+            'password' => Hash::make($request->input('password')),
+            'role' => 'Orang Tua',
+        ]);
+
+        return redirect('/')->with('success', 'Registrasi berhasil! Silakan login untuk melanjutkan pendaftaran.');
     }
 
     public function loginproses(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
+            'email' => 'required',
             'password' => 'required',
             'captcha' => 'required|numeric',
         ]);
@@ -60,7 +83,7 @@ class LoginController extends Controller
             $errorMessages = [];
 
             if ($errors->has('email')) {
-                $errorMessages[] = 'Email tidak valid.';
+                $errorMessages[] = 'Email / Username wajib diisi.';
             }
             if ($errors->has('password')) {
                 $errorMessages[] = 'Password harus diisi.';
@@ -77,36 +100,50 @@ class LoginController extends Controller
                 ->with('error', $errorMessage ?: 'Mohon isi semua field dengan benar.');
         }
 
+        // Mendukung login via Email maupun Username
+        $loginInput = $request->input('email');
+        $field = filter_var($loginInput, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+        $credentials = [
+            $field => $loginInput,
+            'password' => $request->input('password'),
+        ];
+
         // Attempt login
-        if (Auth::attempt($request->only('email', 'password'))) {
+        if (Auth::attempt($credentials)) {
             $user = Auth::user();
 
-            // Store user object in session
+            // Simpan objek user di session
             $request->session()->put('user', $user);
 
-            // Redirect based on user role
+            // Redirect berdasarkan role pengguna
             switch ($user->role) {
                 case 'Admin':
                 case 'Kepala Sekolah':
-                    return redirect('/admin/dashboard')->with('success', 'Selamat datang, ' . $user->name);
+                    return redirect('/admin/dashboard')->with('success', 'Selamat datang, ' . ($user->nama ?: $user->name));
                 case 'Panitia':
-                    return redirect('/beranda/panitia')->with('success', 'Selamat datang, ' . $user->name);
+                    return redirect('/beranda/panitia')->with('success', 'Selamat datang, ' . ($user->nama ?: $user->name));
+                case 'Orang Tua':
                 case 'Calon Siswa':
-                    return redirect('/beranda/casis')->with('success', 'Selamat datang, ' . $user->name);
+                    return redirect('/beranda/casis')->with('success', 'Selamat datang, ' . ($user->nama ?: $user->name));
                 default:
                     Auth::logout();
                     return redirect('/')->with('error', 'Akses ditolak. Hubungi administrator untuk informasi lebih lanjut.');
             }
         }
 
-        // Login failed
+        // Login gagal
         return redirect('/')
             ->withInput($request->except('password'))
-            ->with('error', 'Email atau password salah. Silakan coba lagi.');
+            ->with('error', 'Email/Username atau password salah. Silakan coba lagi.');
     }
-    public function logout()
+
+    public function logout(Request $request)
     {
         Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
         return redirect('/');
     }
 }

@@ -4,12 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Models\foto;
 use App\Models\User;
-use App\Models\tahunajar;
+use App\Models\TahunAjaran;
+use App\Models\CalonSiswa;
+use App\Models\Seleksi;
+use App\Models\Panitia;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\HasilSeleksiNotification;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Hash;
 
 class PengaturanController extends Controller
 {
@@ -64,15 +70,69 @@ class PengaturanController extends Controller
         }
     }
 
-    public function datauser()
+    public function datauser(Request $request)
     {
-        $data = User::all();
-        return view('pengaturan.datauser', compact('data'));
+        $search = trim($request->input('search', ''));
+        $role = trim($request->input('role', ''));
+
+        $query = User::query();
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
+                  ->orWhere('username', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('no_hp', 'like', "%{$search}%");
+            });
+        }
+
+        if ($role !== '') {
+            $query->where('role', $role);
+        }
+
+        $data = $query->orderByRaw("CASE 
+            WHEN role = 'Admin' THEN 1 
+            WHEN role = 'Panitia' THEN 2 
+            ELSE 3 END")
+            ->orderBy('nama', 'asc')
+            ->get();
+
+        $totalUsers = User::count();
+        $totalAdmin = User::where('role', 'Admin')->count();
+        $totalPanitia = User::where('role', 'Panitia')->count();
+        $totalOrtu = User::where('role', 'Orang Tua')->count();
+
+        return view('pengaturan.datauser', compact(
+            'data',
+            'search',
+            'role',
+            'totalUsers',
+            'totalAdmin',
+            'totalPanitia',
+            'totalOrtu'
+        ));
+    }
+
+    public function resetPasswordUser(Request $request, $id)
+    {
+        $request->validate([
+            'password' => 'required|min:6|confirmed',
+        ], [
+            'password.required' => 'Password baru wajib diisi.',
+            'password.min' => 'Password baru minimal 6 karakter.',
+            'password.confirmed' => 'Konfirmasi password baru tidak cocok.',
+        ]);
+
+        $user = User::findOrFail($id);
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return redirect()->route('beranda.datauser')->with('success', "Password untuk akun {$user->nama} ({$user->email}) berhasil diubah.");
     }
 
     public function tahun()
     {
-        $data = tahunajar::all();
+        $data = TahunAjaran::all();
 
         return view('pengaturan.tahun', compact('data'));
     }
@@ -84,30 +144,42 @@ class PengaturanController extends Controller
 
     public function simpan(Request $request)
     {
-        $tahunajar = tahunajar::create([
-            'tahun_ajar' => $request->tahun_ajar,
+        $biayaPembangunan = (float) $request->input('biaya_pembangunan', 0);
+        $biayaBuku = (float) $request->input('biaya_buku', 0);
+        $biayaSeragam = (float) $request->input('biaya_seragam', 0);
+
+        $totalBiayaMasuk = $biayaPembangunan + $biayaBuku + $biayaSeragam;
+        if ($totalBiayaMasuk <= 0 && $request->filled('biaya_daftar_ulang')) {
+            $totalBiayaMasuk = (float) $request->input('biaya_daftar_ulang');
+        }
+
+        $tahunajar = TahunAjaran::create([
+            'tahun_ajaran' => $request->tahun_ajar ?? $request->tahun_ajaran,
             'mulai_pendaftaran' => $request->mulai_pendaftaran,
             'batas_pendaftaran' => $request->batas_pendaftaran,
             'status' => $request->status,
             'tgl_seleksi' => $request->tgl_seleksi,
             'kuota' => $request->kuota,
+            'biaya_pendaftaran' => $request->biaya_pendaftaran ?? 150000,
+            'biaya_pembangunan' => $biayaPembangunan,
+            'biaya_buku' => $biayaBuku,
+            'biaya_seragam' => $biayaSeragam,
+            'biaya_daftar_ulang' => $totalBiayaMasuk > 0 ? $totalBiayaMasuk : 1000000,
         ]);
 
         return redirect()->route('beranda.tahun')->with('success', 'Data Berhasil Disimpan');
     }
 
-
-
     public function edit($id)
     {
-        $data = tahunajar::where('id_ajar', $id)->firstOrFail();
+        $data = TahunAjaran::where('id_tahun_ajaran', $id)->firstOrFail();
         return view('pengaturan.edit', compact('data'));
     }
 
     public function update(Request $request, $id)
     {
         $data = [
-            'tahun_ajar' => $request->input('tahun_ajar'),
+            'tahun_ajaran' => $request->input('tahun_ajar') ?? $request->input('tahun_ajaran'),
             'mulai_pendaftaran' => $request->input('mulai_pendaftaran'),
             'batas_pendaftaran' => $request->input('batas_pendaftaran'),
             'status' => $request->input('status'),
@@ -115,15 +187,40 @@ class PengaturanController extends Controller
             'kuota' => $request->input('kuota'),
         ];
 
-        tahunajar::where('id_ajar', $id)->update($data);
+        if ($request->filled('biaya_pendaftaran')) {
+            $data['biaya_pendaftaran'] = $request->input('biaya_pendaftaran');
+        }
+
+        $biayaPembangunan = $request->input('biaya_pembangunan');
+        $biayaBuku = $request->input('biaya_buku');
+        $biayaSeragam = $request->input('biaya_seragam');
+
+        if ($biayaPembangunan !== null) {
+            $data['biaya_pembangunan'] = (float) $biayaPembangunan;
+        }
+        if ($biayaBuku !== null) {
+            $data['biaya_buku'] = (float) $biayaBuku;
+        }
+        if ($biayaSeragam !== null) {
+            $data['biaya_seragam'] = (float) $biayaSeragam;
+        }
+
+        if ($biayaPembangunan !== null || $biayaBuku !== null || $biayaSeragam !== null) {
+            $data['biaya_daftar_ulang'] = (float) ($data['biaya_pembangunan'] ?? 0)
+                                        + (float) ($data['biaya_buku'] ?? 0)
+                                        + (float) ($data['biaya_seragam'] ?? 0);
+        } elseif ($request->filled('biaya_daftar_ulang')) {
+            $data['biaya_daftar_ulang'] = (float) $request->input('biaya_daftar_ulang');
+        }
+
+        TahunAjaran::where('id_tahun_ajaran', $id)->update($data);
 
         return redirect()->route('beranda.tahun')->with('success', 'Data Berhasil Diperbarui');
     }
 
     public function delete(Request $request, $id)
     {
-        $data = tahunajar::where('id_ajar', $id);
-        $data->delete();
+        TahunAjaran::where('id_tahun_ajaran', $id)->delete();
         return redirect()->route('beranda.tahun')->with('success', 'Data Berhasil Dihapus');
     }
 
@@ -131,81 +228,150 @@ class PengaturanController extends Controller
     {
         $search = $request->input('search');
 
-        $tahunAjarBerlangsung = DB::table('tahun_ajar')
-            ->where('status', 'Berlangsung')
-            ->first();
+        $tahunAjarBerlangsung = TahunAjaran::where('status', 'Berlangsung')->first()
+            ?? TahunAjaran::orderBy('id_tahun_ajaran', 'desc')->first();
 
-        if (!$tahunAjarBerlangsung) {
-            $tahunAjarBerakhir = DB::table('tahun_ajar')
-                ->where('status', 'Berakhir')
-                ->orderBy('updated_at', 'desc')
-                ->first();
-            $tahunAjarId = $tahunAjarBerakhir ? $tahunAjarBerakhir->id_ajar : null;
-        } else {
-            $tahunAjarId = $tahunAjarBerlangsung->id_ajar;
+        $tahunAjarId = $tahunAjarBerlangsung ? $tahunAjarBerlangsung->id_tahun_ajaran : null;
+
+        $query = CalonSiswa::layakSeleksi($tahunAjarId)
+            ->with([
+                'pembayaran.seleksi.panitia',
+                'pembayaran.seleksi.panitiaPengumum',
+                'tahunAjaran',
+            ]);
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_calon_siswa', 'like', '%' . $search . '%')
+                  ->orWhere('nik_calon_siswa', 'like', '%' . $search . '%')
+                  ->orWhere('no_registrasi', 'like', '%' . $search . '%');
+            });
         }
 
-        $data = DB::table('tb_casis')
-            ->leftJoin('tb_seleksi', 'tb_casis.id_casis', '=', 'tb_seleksi.casis_id')
-            ->leftJoin('tb_pembayaran', 'tb_casis.id_casis', '=', 'tb_pembayaran.casis_id')
-            ->leftJoin('tb_pendaftaran', 'tb_casis.id_casis', '=', 'tb_pendaftaran.casis_id')
-            ->where('tb_pendaftaran.status', '=', 'Berhasil')
-            ->where('tb_pendaftaran.ajar_id', '=', $tahunAjarId)
-            ->where('tb_casis.nama', 'LIKE', '%' . $search . '%')
-            ->select(
-                'tb_casis.id_casis',
-                'tb_casis.nama',
-                'tb_seleksi.id_seleksi',
-                'tb_seleksi.nilai_baca',
-                'tb_seleksi.nilai_tulis',
-                'tb_seleksi.nilai_hitung',
-                'tb_seleksi.nilai_wawancara',
-                'tb_seleksi.total_nilai',
-                'tb_seleksi.nilai_akhir',
-                'tb_seleksi.hasil_seleksi',
-                'tb_seleksi.status as status_seleksi'
-            )
-            ->get();
+        $data = $query->orderBy('nama_calon_siswa', 'asc')->get();
+        $aktivTahunAjaran = $tahunAjarBerlangsung;
 
-        // Arahkan ke view Panitia jika role adalah Panitia
+        // Statistik peserta seleksi
+        $totalPeserta = $data->count();
+        $sudahDinilai = $data->filter(fn($c) => $c->pembayaran?->seleksi !== null)->count();
+        $belumDinilai = $totalPeserta - $sudahDinilai;
+        $jumlahLulus = $data->filter(fn($c) => $c->pembayaran?->seleksi?->hasil_seleksi === 'Lulus')->count();
+        $jumlahTidakLulus = $data->filter(fn($c) => $c->pembayaran?->seleksi?->hasil_seleksi === 'Tidak Lulus')->count();
+
+        // Status publikasi
+        $firstDiumumkan = $data->first(fn($c) => $c->pembayaran?->seleksi?->isDiumumkan())?->pembayaran?->seleksi;
+        $isDiumumkan = !is_null($firstDiumumkan);
+        $waktuPublikasi = $firstDiumumkan?->diumumkan_pada;
+        $panitiaPengumum = $firstDiumumkan?->panitiaPengumum;
+
+        $isSemuaDinilai = ($totalPeserta > 0) && ($belumDinilai === 0);
+
         $user = auth()->user();
         if ($user && $user->role === 'Panitia') {
-            return view('panitia.pengumuman_seleksi', compact('data'));
+            return view('panitia.pengumuman_seleksi', compact(
+                'data',
+                'aktivTahunAjaran',
+                'search',
+                'totalPeserta',
+                'sudahDinilai',
+                'belumDinilai',
+                'jumlahLulus',
+                'jumlahTidakLulus',
+                'isDiumumkan',
+                'waktuPublikasi',
+                'panitiaPengumum',
+                'isSemuaDinilai'
+            ));
         }
 
-        return view('pengaturan.pengumuman', compact('data'));
+        return view('pengaturan.pengumuman', compact('data', 'aktivTahunAjaran', 'search'));
     }
 
+    /**
+     * Publikasikan hasil seleksi secara serentak dan kunci nilai
+     */
+    public function publikasikanHasil(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'Panitia') {
+            abort(403, 'Akses publikasi pengumuman seleksi hanya diizinkan untuk Panitia.');
+        }
+
+        $tahunAjarBerlangsung = TahunAjaran::where('status', 'Berlangsung')->first()
+            ?? TahunAjaran::orderBy('id_tahun_ajaran', 'desc')->first();
+
+        $tahunAjarId = $tahunAjarBerlangsung ? $tahunAjarBerlangsung->id_tahun_ajaran : null;
+
+        return DB::transaction(function () use ($tahunAjarId, $user) {
+            $casisList = CalonSiswa::layakSeleksi($tahunAjarId)
+                ->with(['pembayaran.seleksi'])
+                ->get();
+
+            $totalPeserta = $casisList->count();
+            if ($totalPeserta === 0) {
+                return redirect()->back()->with('error', 'Tidak ada calon siswa yang layak mengikuti seleksi pada periode tahun ajaran ini.');
+            }
+
+            // Validasi kelengkapan: Semua peserta layak seleksi harus sudah dinilai
+            $belumDinilai = $casisList->filter(fn($c) => $c->pembayaran?->seleksi === null);
+            if ($belumDinilai->count() > 0) {
+                return redirect()->back()->with('error', 'Publikasi gagal: Masih ada ' . $belumDinilai->count() . ' peserta seleksi yang belum dinilai. Silakan lengkapi seluruh penilaian sebelum mempublikasikan hasil.');
+            }
+
+            // Cek idempoten: apakah seluruhnya sudah dipublikasikan sebelumnya
+            $sudahDipublikasikan = $casisList->every(fn($c) => $c->pembayaran?->seleksi?->isDiumumkan());
+            if ($sudahDipublikasikan) {
+                return redirect()->route('panitia.pengumuman.seleksi')->with('info', 'Hasil seleksi untuk tahun ajaran ini sudah dipublikasikan sebelumnya.');
+            }
+
+            $panitia = $user->panitia ?? Panitia::where('id_user', $user->id_user ?? $user->getKey())->first();
+            $idPanitia = $panitia ? $panitia->id_panitia : null;
+            $now = now();
+
+            $pembayaranIds = $casisList->pluck('pembayaran.id_pembayaran')->filter();
+
+            // 1. Kunci nilai dan catat waktu serta petugas publikasi
+            Seleksi::whereIn('id_pembayaran', $pembayaranIds)
+                ->whereNull('diumumkan_pada')
+                ->update([
+                    'diumumkan_pada' => $now,
+                    'diumumkan_oleh' => $idPanitia,
+                ]);
+
+            // 2. Sinkronkan status pendaftaran calon siswa secara resmi
+            $lulusPembayaranIds = Seleksi::whereIn('id_pembayaran', $pembayaranIds)
+                ->where('hasil_seleksi', 'Lulus')
+                ->pluck('id_pembayaran');
+
+            CalonSiswa::whereHas('pembayaran', fn($q) => $q->whereIn('id_pembayaran', $lulusPembayaranIds))
+                ->update(['status_pendaftaran' => 'Diterima']);
+
+            $gagalPembayaranIds = Seleksi::whereIn('id_pembayaran', $pembayaranIds)
+                ->where('hasil_seleksi', 'Tidak Lulus')
+                ->pluck('id_pembayaran');
+
+            CalonSiswa::whereHas('pembayaran', fn($q) => $q->whereIn('id_pembayaran', $gagalPembayaranIds))
+                ->update(['status_pendaftaran' => 'Ditolak']);
+
+            // Catat log terstruktur tanpa data pribadi/sensitif
+            Log::info('Publikasi hasil seleksi PPDB berhasil', [
+                'id_panitia' => $idPanitia,
+                'id_tahun_ajaran' => $tahunAjarId,
+                'total_peserta' => $totalPeserta,
+                'total_lulus' => $lulusPembayaranIds->count(),
+                'total_tidak_lulus' => $gagalPembayaranIds->count(),
+                'waktu_publikasi' => $now->toDateTimeString(),
+            ]);
+
+            return redirect()->route('panitia.pengumuman.seleksi')->with('success', 'Hasil seleksi calon siswa berhasil dipublikasikan dan resmi diumumkan ke seluruh calon siswa!');
+        });
+    }
+
+    /**
+     * Fallback / Kompatibilitas route lama
+     */
     public function updateStatusSeleksi(Request $request)
     {
-        $seleksiIds = $request->input('seleksi_ids', []);
-
-        // Update yang dicentang → Berhasil
-        if (!empty($seleksiIds)) {
-            DB::table('tb_seleksi')
-                ->whereIn('id_seleksi', $seleksiIds)
-                ->update(['status' => 'Berhasil']);
-
-            // Reset yang TIDAK dicentang → Pending
-            DB::table('tb_seleksi')
-                ->whereNotIn('id_seleksi', $seleksiIds)
-                ->where('status', 'Berhasil')
-                ->update(['status' => 'Pending']);
-        } else {
-            // Tidak ada yang dicentang → reset semua ke Pending
-            DB::table('tb_seleksi')
-                ->where('status', 'Berhasil')
-                ->update(['status' => 'Pending']);
-        }
-
-        $successMsg = 'Status pengumuman seleksi berhasil diperbarui.';
-
-        // Redirect berdasarkan role
-        $user = auth()->user();
-        if ($user && $user->role === 'Panitia') {
-            return redirect()->route('panitia.pengumuman.seleksi')->with('success', $successMsg);
-        }
-
-        return redirect()->route('pengumuman.pengseleksi')->with('success', $successMsg);
+        return $this->publikasikanHasil($request);
     }
 }

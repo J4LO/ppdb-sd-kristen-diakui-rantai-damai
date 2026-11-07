@@ -73,6 +73,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application Display Timezone & Label
+    |--------------------------------------------------------------------------
+    |
+    | Konfigurasi zona waktu tampilan sekolah (WITA / Asia/Makassar atau
+    | WIT / Asia/Jayapura). Database tetap menyimpan dalam UTC.
+    |
+    */
+    'display_timezone' => env('APP_DISPLAY_TIMEZONE', 'Asia/Makassar'),
+    'display_timezone_label' => env('APP_DISPLAY_TIMEZONE_LABEL', 'WITA'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------
     |

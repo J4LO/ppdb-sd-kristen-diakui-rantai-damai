@@ -72,6 +72,17 @@
                             </div>
                         </div>
 
+                        {{-- Tombol Logout / Keluar dari Akun --}}
+                        <div class="mt-6 pt-5 border-t border-slate-100">
+                            <a href="{{ route('logout') }}"
+                               onclick="return confirm('Apakah Anda yakin ingin keluar dari sistem?')"
+                               class="w-full inline-flex items-center justify-center gap-2.5 px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-800 border border-rose-200 hover:border-rose-300 rounded-xl font-semibold text-sm transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"
+                               title="Keluar dari Akun Panitia">
+                                <i class="fas fa-sign-out-alt text-rose-600" aria-hidden="true"></i>
+                                <span>Keluar dari Akun</span>
+                            </a>
+                        </div>
+
                     </div>
                 </div>
 

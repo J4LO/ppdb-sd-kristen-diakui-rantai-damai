@@ -55,72 +55,89 @@
                     <i class="fas fa-user text-white text-xs"></i>
                 </div>
                 <div class="min-w-0">
-                    @php $user = session('user'); @endphp
-                    <p class="text-white text-sm font-medium truncate">{{ $user->name ?? 'Panitia' }}</p>
+                    @php $currentUser = session('user') ?? auth()->user(); @endphp
+                    <p class="text-white text-sm font-medium truncate">{{ $currentUser->nama ?? $currentUser->name ?? 'Panitia' }}</p>
                     <p class="text-green-300 text-xs">Panitia PPDB</p>
                 </div>
             </div>
         </div>
 
         {{-- Navigation --}}
-        <nav class="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
-            <div class="sidebar-group-title">Menu Utama</div>
-
-            <a href="/beranda/panitia" class="sidebar-nav-item {{ Request::is('beranda/panitia') ? 'active' : '' }}">
-                <i class="fas fa-home w-4 text-center"></i>
-                <span>Dashboard</span>
-            </a>
-
-            <a href="/panitia/evaluasi-seleksi" class="sidebar-nav-item {{ Request::is('panitia/evaluasi-seleksi') || Request::is('panitia/input_nilai/*') ? 'active' : '' }}">
-                <i class="fas fa-clipboard-list w-4 text-center"></i>
-                <span>Seleksi Calon Siswa</span>
-            </a>
-
-            <a href="{{ route('panitia.pengumuman.seleksi') }}" class="sidebar-nav-item {{ Request::routeIs('panitia.pengumuman.seleksi') ? 'active' : '' }}">
-                <i class="fas fa-bullhorn w-4 text-center"></i>
-                <span>Pengumuman Seleksi</span>
-            </a>
-
-            {{-- Laporan Group --}}
-            <div class="sidebar-group-title">Laporan Seleksi</div>
-            <div x-data="{ open: {{ Request::is('laporan/hasil casis') || Request::is('laporan/siswa lulus') || Request::is('laporan/siswa/tidak lulus') ? 'true' : 'false' }} }">
-                <button @click="open = !open"
-                        class="sidebar-nav-item w-full justify-between {{ Request::is('laporan/hasil casis') || Request::is('laporan/siswa lulus') || Request::is('laporan/siswa/tidak lulus') ? 'active' : '' }}">
-                    <span class="flex items-center gap-2.5">
-                        <i class="fas fa-chart-pie w-4 text-center"></i>
-                        <span>Laporan Seleksi</span>
+        <nav class="flex-1 px-2 py-3 space-y-1 overflow-y-auto flex flex-col justify-between">
+            <div class="space-y-0.5">
+                {{-- Dashboard --}}
+                <a href="/beranda/panitia"
+                   class="sidebar-nav-item min-h-[44px] {{ Request::is('beranda/panitia') ? 'active' : '' }}"
+                   title="Dashboard"
+                   aria-label="Dashboard">
+                    <span class="w-5 flex items-center justify-center shrink-0 text-center">
+                        <i class="fas fa-home text-base"></i>
                     </span>
-                    <i class="fas fa-chevron-down text-xs transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
-                </button>
-                <div x-show="open" x-collapse class="space-y-0.5 mt-0.5">
-                    <a href="/laporan/hasil casis" class="sidebar-submenu-item {{ Request::is('laporan/hasil casis') ? 'active' : '' }}">
-                        <i class="fas fa-circle text-[6px]"></i> Hasil Seleksi
-                    </a>
-                    <a href="/laporan/siswa lulus" class="sidebar-submenu-item {{ Request::is('laporan/siswa lulus') ? 'active' : '' }}">
-                        <i class="fas fa-circle text-[6px]"></i> Siswa Diterima
-                    </a>
-                    <a href="/laporan/siswa/tidak lulus" class="sidebar-submenu-item {{ Request::is('laporan/siswa/tidak lulus') ? 'active' : '' }}">
-                        <i class="fas fa-circle text-[6px]"></i> Siswa Tidak Diterima
-                    </a>
-                </div>
+                    <span>Dashboard</span>
+                </a>
+
+                {{-- Grup SELEKSI --}}
+                <div class="sidebar-group-title select-none">SELEKSI</div>
+
+                <a href="/panitia/evaluasi-seleksi"
+                   class="sidebar-nav-item min-h-[44px] {{ Request::is('panitia/evaluasi-seleksi') || Request::is('panitia/input_nilai/*') ? 'active' : '' }}"
+                   title="Penilaian Seleksi"
+                   aria-label="Penilaian Seleksi">
+                    <span class="w-5 flex items-center justify-center shrink-0 text-center">
+                        <i class="fas fa-clipboard-list text-base"></i>
+                    </span>
+                    <span>Penilaian Seleksi</span>
+                </a>
+
+                <a href="{{ route('panitia.pengumuman.seleksi') }}"
+                   class="sidebar-nav-item min-h-[44px] {{ Request::routeIs('panitia.pengumuman.seleksi') ? 'active' : '' }}"
+                   title="Publikasi Hasil"
+                   aria-label="Publikasi Hasil">
+                    <span class="w-5 flex items-center justify-center shrink-0 text-center">
+                        <i class="fas fa-bullhorn text-base"></i>
+                    </span>
+                    <span>Publikasi Hasil</span>
+                </a>
+
+                {{-- Grup LAPORAN --}}
+                <div class="sidebar-group-title select-none">LAPORAN</div>
+
+                <a href="/laporan/hasil casis"
+                   class="sidebar-nav-item min-h-[44px] {{ Request::is('laporan/hasil casis') ? 'active' : '' }}"
+                   title="Rekap Hasil Seleksi"
+                   aria-label="Rekap Hasil Seleksi">
+                    <span class="w-5 flex items-center justify-center shrink-0 text-center">
+                        <i class="fas fa-chart-pie text-base"></i>
+                    </span>
+                    <span>Rekap Hasil Seleksi</span>
+                </a>
             </div>
 
-            <div class="sidebar-group-title">Akun</div>
+            {{-- Grup AKUN (di bawah dengan jarak aman) --}}
+            <div class="pt-4 border-t border-white/10 mt-auto space-y-0.5">
+                <div class="sidebar-group-title select-none">AKUN</div>
 
-            <a href="/beranda/profil panitia" class="sidebar-nav-item {{ Request::is('beranda/profil panitia') ? 'active' : '' }}">
-                <i class="fas fa-user-circle w-4 text-center"></i>
-                <span>Profil Saya</span>
-            </a>
+                <a href="/beranda/profil panitia"
+                   class="sidebar-nav-item min-h-[44px] {{ Request::is('beranda/profil panitia') ? 'active' : '' }}"
+                   title="Profil Saya"
+                   aria-label="Profil Saya">
+                    <span class="w-5 flex items-center justify-center shrink-0 text-center">
+                        <i class="fas fa-user-circle text-base"></i>
+                    </span>
+                    <span>Profil Saya</span>
+                </a>
 
-            <a href="/logout" class="sidebar-nav-item hover:bg-red-800/50">
-                <i class="fas fa-sign-out-alt w-4 text-center"></i>
-                <span>Logout</span>
-            </a>
+                <a href="{{ route('logout') }}"
+                   class="sidebar-nav-item min-h-[44px] text-red-300 hover:text-white hover:bg-red-500/20"
+                   title="Keluar"
+                   aria-label="Keluar">
+                    <span class="w-5 flex items-center justify-center shrink-0 text-center">
+                        <i class="fas fa-sign-out-alt text-base"></i>
+                    </span>
+                    <span>Keluar</span>
+                </a>
+            </div>
         </nav>
-
-        <div class="px-3 py-2.5 border-t border-white/10">
-            <p class="text-green-400/60 text-xs text-center">TA {{ $aktivTahunAjaran->tahun_ajar ?? date('Y') }}</p>
-        </div>
     </aside>
 
     {{-- Main Content --}}
@@ -132,10 +149,14 @@
                         class="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
                     <i class="fas fa-bars text-sm"></i>
                 </button>
-                <nav class="hidden sm:flex breadcrumb">
-                    <span>Portal Panitia</span>
-                    <i class="fas fa-chevron-right text-[10px] text-slate-400"></i>
-                    <span class="breadcrumb-item active">@yield('page-title', 'Dashboard')</span>
+                <nav class="hidden sm:flex breadcrumb items-center gap-2 text-sm text-slate-500">
+                    @hasSection('breadcrumb')
+                        @yield('breadcrumb')
+                    @else
+                        <span>Portal Panitia</span>
+                        <i class="fas fa-chevron-right text-[10px] text-slate-400"></i>
+                        <span class="breadcrumb-item active">@yield('page-title', 'Dashboard')</span>
+                    @endif
                 </nav>
             </div>
 

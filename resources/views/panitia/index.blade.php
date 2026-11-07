@@ -34,6 +34,7 @@
                         <th class="px-5 py-4">Nama Lengkap</th>
                         <th class="px-5 py-4">Username</th>
                         <th class="px-5 py-4">Email</th>
+                        <th class="px-5 py-4">No. HP</th>
                         <th class="px-5 py-4">Status</th>
                         <th class="px-5 py-4 text-right">Aksi</th>
                     </tr>
@@ -54,6 +55,19 @@
                         </td>
                         <td class="px-5 py-4 text-slate-600 font-medium">{{ $value->user->name ?? '-' }}</td>
                         <td class="px-5 py-4 text-slate-500">{{ $value->user->email ?? '-' }}</td>
+                        <td class="px-5 py-4 text-slate-600">
+                            @php
+                                $hp = $value->no_hp ?: ($value->user->no_hp ?? null);
+                            @endphp
+                            @if($hp)
+                                <a href="https://wa.me/{{ preg_replace('/^0/', '62', preg_replace('/[^0-9]/', '', $hp)) }}" target="_blank" class="inline-flex items-center gap-1.5 text-slate-700 hover:text-green-600 font-medium transition-colors" title="Hubungi via WhatsApp">
+                                    <i class="fab fa-whatsapp text-emerald-500 text-sm"></i>
+                                    <span>{{ $hp }}</span>
+                                </a>
+                            @else
+                                <span class="text-slate-400">-</span>
+                            @endif
+                        </td>
                         <td class="px-5 py-4">
                             @if($value->status == 'Aktif')
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20">
@@ -70,7 +84,7 @@
                                 <a href="/admin/data/panitia/edit/{{$value->id_panitia}}" class="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <form action="{{ route('deletepanitia', $value->user->id) }}" method="post" onsubmit="return confirm('Apakah Anda yakin ingin menghapus panitia {{ $value->user->name }}? Data tidak dapat dikembalikan.')">
+                                <form action="{{ route('deletepanitia', $value->id_panitia ?? $value->user->id_user) }}" method="post" onsubmit="return confirm('Apakah Anda yakin ingin menghapus panitia {{ $value->nama }}? Data tidak dapat dikembalikan.')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Hapus">
@@ -82,7 +96,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="px-5 py-12 text-center">
+                        <td colspan="6" class="px-5 py-12 text-center">
                             <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-100 text-slate-400 mb-3">
                                 <i class="fas fa-users-slash text-xl"></i>
                             </div>

@@ -2,6 +2,18 @@
 
 @section('page-title', 'Edit Tahun Ajaran')
 
+@php
+    $pembangunanVal = (float)($data->biaya_pembangunan ?? 0);
+    $bukuVal = (float)($data->biaya_buku ?? 0);
+    $seragamVal = (float)($data->biaya_seragam ?? 0);
+    $totalVal = (float)($data->biaya_daftar_ulang ?? 0);
+    if ($pembangunanVal <= 0 && $bukuVal <= 0 && $seragamVal <= 0 && $totalVal > 0) {
+        $pembangunanVal = round($totalVal * 0.6);
+        $bukuVal = round($totalVal * 0.2);
+        $seragamVal = $totalVal - $pembangunanVal - $bukuVal;
+    }
+@endphp
+
 @section('content')
 <div class="p-6 max-w-4xl mx-auto">
 
@@ -86,6 +98,94 @@
                         required>
                 </div>
 
+                {{-- Biaya Pendaftaran --}}
+                <div class="md:col-span-2">
+                    <label for="biaya_pendaftaran" class="block text-sm font-semibold text-slate-700 mb-2">
+                        Biaya Formulir Pendaftaran (Rp) <span class="text-red-500">*</span>
+                    </label>
+                    <input type="number" id="biaya_pendaftaran" name="biaya_pendaftaran" min="0" step="5000"
+                        value="{{ $data->biaya_pendaftaran ?? 150000 }}"
+                        class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-700 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all font-semibold"
+                        required>
+                    <p class="text-slate-400 text-xs mt-1">Biaya pembayaran awal saat pendaftaran calon siswa</p>
+                </div>
+
+                {{-- Rincian Biaya Masuk / Daftar Ulang --}}
+                <div class="md:col-span-2 bg-slate-50/80 rounded-2xl p-5 border border-slate-200">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                            <i class="fas fa-coins text-base"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-slate-800">Rincian Biaya Masuk / Daftar Ulang</h3>
+                            <p class="text-slate-500 text-xs">Atur nominal ketiga komponen biaya di bawah. Total biaya daftar ulang akan terhitung secara otomatis.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        {{-- 1. Uang Pembangunan & Sarana --}}
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+                            <label for="biaya_pembangunan" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                                1. Uang Pembangunan & Sarana <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-xs">Rp</span>
+                                <input type="number" id="biaya_pembangunan" name="biaya_pembangunan" min="0" step="1000"
+                                    value="{{ (int) $pembangunanVal }}"
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 text-slate-800 font-bold focus:bg-white focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all text-sm biaya-komponen"
+                                    required>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-1.5 leading-tight">Gedung & fasilitas penunjang belajar</p>
+                        </div>
+
+                        {{-- 2. Buku Paket Pelajaran & Modul --}}
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+                            <label for="biaya_buku" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                                2. Buku Paket & Modul <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-xs">Rp</span>
+                                <input type="number" id="biaya_buku" name="biaya_buku" min="0" step="1000"
+                                    value="{{ (int) $bukuVal }}"
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 text-slate-800 font-bold focus:bg-white focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all text-sm biaya-komponen"
+                                    required>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-1.5 leading-tight">Buku paket & modul pembelajaran 1 TA</p>
+                        </div>
+
+                        {{-- 3. Seragam Sekolah & Atribut --}}
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+                            <label for="biaya_seragam" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                                3. Seragam Sekolah & Atribut <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-xs">Rp</span>
+                                <input type="number" id="biaya_seragam" name="biaya_seragam" min="0" step="1000"
+                                    value="{{ (int) $seragamVal }}"
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 text-slate-800 font-bold focus:bg-white focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all text-sm biaya-komponen"
+                                    required>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-1.5 leading-tight">Seragam lengkap beserta atribut siswa</p>
+                        </div>
+                    </div>
+
+                    {{-- Total Otomatis --}}
+                    <div class="bg-amber-50/70 border border-amber-200/80 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div>
+                            <span class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-800">
+                                <i class="fas fa-calculator text-amber-600"></i> Total Biaya Masuk / Daftar Ulang
+                            </span>
+                            <p class="text-xs text-amber-700/80 mt-0.5">Kalkulasi otomatis dari penjumlahan ketiga komponen di atas.</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="hidden" id="biaya_daftar_ulang" name="biaya_daftar_ulang" value="{{ (int) $totalVal }}">
+                            <div id="display_total_biaya" class="text-xl sm:text-2xl font-black text-amber-700 tracking-tight">
+                                Rp {{ number_format($totalVal, 0, ',', '.') }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- Status --}}
                 <div class="md:col-span-2">
                     <label for="status" class="block text-sm font-semibold text-slate-700 mb-2">
@@ -115,4 +215,38 @@
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const inputPembangunan = document.getElementById('biaya_pembangunan');
+    const inputBuku = document.getElementById('biaya_buku');
+    const inputSeragam = document.getElementById('biaya_seragam');
+    const inputTotal = document.getElementById('biaya_daftar_ulang');
+    const displayTotal = document.getElementById('display_total_biaya');
+
+    function hitungTotal() {
+        const pembangunan = parseFloat(inputPembangunan ? inputPembangunan.value : 0) || 0;
+        const buku = parseFloat(inputBuku ? inputBuku.value : 0) || 0;
+        const seragam = parseFloat(inputSeragam ? inputSeragam.value : 0) || 0;
+        const total = Math.max(0, Math.round(pembangunan + buku + seragam));
+
+        if (inputTotal) {
+            inputTotal.value = total;
+        }
+        if (displayTotal) {
+            displayTotal.textContent = 'Rp ' + total.toLocaleString('id-ID');
+        }
+    }
+
+    [inputPembangunan, inputBuku, inputSeragam].forEach(input => {
+        if (input) {
+            input.addEventListener('input', hitungTotal);
+            input.addEventListener('change', hitungTotal);
+            input.addEventListener('keyup', hitungTotal);
+        }
+    });
+
+    hitungTotal();
+});
+</script>
 @endsection

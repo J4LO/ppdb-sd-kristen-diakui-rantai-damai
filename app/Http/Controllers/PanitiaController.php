@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\casis;
-use App\Models\panitia;
-use App\Models\selekasi;
+use App\Models\CalonSiswa;
+use App\Models\Panitia;
+use App\Models\Seleksi;
+use App\Models\TahunAjaran;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -16,11 +18,17 @@ class PanitiaController extends Controller
     {
         $search = $request->input('search');
 
-        $query = panitia::with('user');
+        $query = Panitia::with('user');
 
         if ($search) {
-            $query->whereHas('user', function ($q) use ($search) {
-                $q->where('nama', 'like', '%' . $search . '%');
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_panitia', 'like', '%' . $search . '%')
+                  ->orWhere('no_hp', 'like', '%' . $search . '%')
+                  ->orWhereHas('user', function ($sub) use ($search) {
+                      $sub->where('nama', 'like', '%' . $search . '%')
+                          ->orWhere('email', 'like', '%' . $search . '%')
+                          ->orWhere('no_hp', 'like', '%' . $search . '%');
+                  });
             });
         }
 
@@ -37,192 +45,253 @@ class PanitiaController extends Controller
     public function proses(Request $request)
     {
         // Proses menyimpan data user
+        $username = $request->name ?: strtolower(preg_replace('/[^a-zA-Z0-9]/', '', explode('@', $request->email)[0]));
+        $noHp = $request->no_hp ?? '';
         $user = User::create([
-            'name' => $request->name,
+            'nama' => $request->nama ?: $request->name,
+            'username' => $username,
             'email' => $request->email,
+            'no_hp' => $noHp,
             'password' => Hash::make($request->password),
             'role' => 'Panitia',
         ]);
 
-        //menyimpan data calon siswa
-        $panitia = panitia::create([
-            'user_id' => $user->id,
-            'nama' => $request->nama,
-            'jenis_kelamin' => $request->jenis_kelamin,
-            'status' => $request->status,
+        // Menyimpan data panitia
+        $panitia = Panitia::create([
+            'id_user' => $user->id_user,
+            'nama_panitia' => $request->nama ?: $request->name,
+            'no_hp' => $noHp,
+            'status' => $request->status ?? 'Aktif',
         ]);
 
-        // Redirect dengan pesan sukses
-        return redirect()->route('datapanitia')->with('success', 'Data Berhasil Disimpan');
+        return redirect()->route('datapanitia')->with('success', 'Data Panitia Berhasil Disimpan');
     }
 
     public function edit($id)
     {
-        $data = panitia::where('id_panitia', $id)->firstOrFail();
+        $data = Panitia::where('id_panitia', $id)->firstOrFail();
         return view('panitia.edit', compact('data'));
     }
 
     public function update(Request $request, $id)
     {
-        $data = panitia::with('user')->find($id);
+        $data = Panitia::with('user')->find($id);
         if (!$data) {
-            return redirect()->route('datapanitia')->with('error', 'Data not found.');
+            return redirect()->route('datapanitia')->with('error', 'Data panitia tidak ditemukan.');
         }
 
-        $data->user->name = $request->name;
-        $data->user->email = $request->email;
-        if ($request->password) {
-            $data->user->password = bcrypt($request->password);
-        }
-        $data->user->save();
+        $rules = [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'nama' => 'required|string|max:255',
+            'status' => 'required|in:Aktif,Non Aktif',
+        ];
 
-        $data->nama = $request->nama;
-        $data->jenis_kelamin = $request->jenis_kelamin;
-        $data->status = $request->status;
+        if ($request->filled('password')) {
+            $rules['password'] = $request->filled('password_confirmation') ? 'min:6|confirmed' : 'min:6';
+        }
+
+        $messages = [
+            'name.required' => 'Username wajib diisi.',
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'password.min' => 'Password baru minimal terdiri dari 6 karakter.',
+            'password.confirmed' => 'Konfirmasi password baru tidak cocok.',
+            'nama.required' => 'Nama lengkap wajib diisi.',
+        ];
+
+        $request->validate($rules, $messages);
+
+        if ($data->user) {
+            $data->user->nama = $request->nama ?: $request->name;
+            $data->user->username = $request->name ?: $data->user->username;
+            $data->user->email = $request->email;
+            if ($request->has('no_hp')) {
+                $data->user->no_hp = $request->no_hp;
+            }
+            if ($request->filled('password')) {
+                $data->user->password = Hash::make($request->password);
+            }
+            $data->user->save();
+        }
+
+        $data->nama_panitia = $request->nama ?: $request->name;
+        if ($request->has('no_hp')) {
+            $data->no_hp = $request->no_hp;
+        }
+        $data->status = $request->status ?? 'Aktif';
         $data->save();
 
-        return redirect()->route('datapanitia')->with('success', 'Data Berhasil Diperbarui');
+        return redirect()->route('datapanitia')->with('success', 'Data panitia dan akun berhasil diperbarui.');
     }
 
     public function delete(Request $request, $id)
     {
-        $data = User::where('id', $id);
-        $data->delete();
-        return Redirect('/data/panitia')->with('delete', 'Data Berhasil Dihapus');
+        $panitia = Panitia::find($id);
+        if ($panitia) {
+            $userId = $panitia->id_user;
+            $panitia->delete();
+            if ($userId) {
+                User::where('id_user', $userId)->delete();
+            }
+        } else {
+            User::where('id_user', $id)->delete();
+        }
+        return redirect()->route('datapanitia')->with('delete', 'Data Panitia Berhasil Dihapus');
     }
 
+    /**
+     * Tampilan data calon siswa untuk evaluasi nilai seleksi
+     */
     public function nilai(Request $request)
     {
         $search = $request->input('search');
 
         // Cari tahun ajar yang sedang berlangsung
-        $tahunAjarBerlangsung = DB::table('tahun_ajar')
-            ->where('status', 'Berlangsung')
-            ->first();
+        $tahunAjarBerlangsung = TahunAjaran::where('status', 'Berlangsung')->first()
+            ?? TahunAjaran::orderBy('id_tahun_ajaran', 'desc')->first();
 
-        // Jika tidak ada yang berlangsung, cari yang berakhir terbaru
-        if (!$tahunAjarBerlangsung) {
-            $tahunAjarBerakhir = DB::table('tahun_ajar')
-                ->where('status', 'Berakhir')
-                ->orderBy('updated_at', 'desc')
-                ->first();
+        $tahunAjarId = $tahunAjarBerlangsung ? $tahunAjarBerlangsung->id_tahun_ajaran : null;
 
-            $tahunAjarId = $tahunAjarBerakhir ? $tahunAjarBerakhir->id_ajar : null;
-        } else {
-            $tahunAjarId = $tahunAjarBerlangsung->id_ajar;
+        // Query calon siswa yang layak seleksi dengan eager loading untuk mencegah N+1
+        $query = CalonSiswa::layakSeleksi($tahunAjarId)
+            ->with([
+                'pembayaran.seleksi.panitia',
+                'pembayaran.seleksi.panitiaPengumum',
+                'tahunAjaran',
+            ]);
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_calon_siswa', 'like', '%' . $search . '%')
+                  ->orWhere('nik_calon_siswa', 'like', '%' . $search . '%')
+                  ->orWhere('no_registrasi', 'like', '%' . $search . '%');
+            });
         }
 
-        $data = DB::table('tb_casis')
-            ->leftJoin('tb_seleksi', 'tb_casis.id_casis', '=', 'tb_seleksi.casis_id')
-            ->leftJoin('tb_pembayaran', 'tb_casis.id_casis', '=', 'tb_pembayaran.casis_id')
-            ->leftJoin('tb_pendaftaran', 'tb_casis.id_casis', '=', 'tb_pendaftaran.casis_id')
-            ->where('tb_pendaftaran.status', '=', 'Berhasil')
-            ->where('tb_pembayaran.status_pembayaran', '=', 'Lunas') // Hanya muncul jika pembayaran lunas
-            ->where('tb_pendaftaran.ajar_id', '=', $tahunAjarId) // Filter berdasarkan tahun ajar
-            ->where('tb_casis.nama', 'LIKE', '%' . $search . '%')
-            ->select(
-                'tb_casis.id_casis',
-                'tb_casis.nama',
-                'tb_seleksi.nilai_baca',
-                'tb_seleksi.nilai_tulis',
-                'tb_seleksi.nilai_hitung',
-                'tb_seleksi.nilai_wawancara',
-                'tb_seleksi.total_nilai',
-                'tb_seleksi.nilai_akhir',
-                'tb_seleksi.hasil_seleksi'
-            )
-            ->get();
+        $data = $query->orderBy('nama_calon_siswa', 'asc')->get();
 
-        return view('panitia.datanilai', compact('data'));
+        // Hitung statistik agregat peserta seleksi
+        $totalPeserta = $data->count();
+        $sudahDinilai = $data->filter(fn($c) => $c->pembayaran?->seleksi !== null)->count();
+        $belumDinilai = $totalPeserta - $sudahDinilai;
+        $sudahDiumumkan = $data->filter(fn($c) => $c->pembayaran?->seleksi?->isDiumumkan())->count();
+
+        return view('panitia.datanilai', compact(
+            'data',
+            'tahunAjarBerlangsung',
+            'search',
+            'totalPeserta',
+            'sudahDinilai',
+            'belumDinilai',
+            'sudahDiumumkan'
+        ));
     }
 
+    /**
+     * Form input / edit nilai seleksi calon siswa
+     */
     public function input(Request $request, $id)
     {
-        $data = casis::with(['seleksi'])->where('id_casis', $id)->first();
-        $seleksi = $data->seleksi->first();
-        return view('panitia.inputnilai', compact('data', 'seleksi'));
-    }
+        $casis = CalonSiswa::with(['pembayaran.seleksi.panitiaPengumum', 'tahunAjaran'])
+            ->where('id_calon_siswa', $id)
+            ->firstOrFail();
 
-    public function simpan(Request $request, $id)
-    {
-        // Validasi data dari request
-        $validatedData = $request->validate([
-            'nilai_baca' => 'required|numeric',
-            'nilai_tulis' => 'required|numeric',
-            'nilai_hitung' => 'required|numeric',
-            'nilai_wawancara' => 'required|numeric',
-            'tgl_seleksi' => 'required|date',
-        ]);
-
-        // Temukan data casis berdasarkan id_casis
-        $casis = Casis::with(['pendaftaran', 'seleksi'])->where('id_casis', $id)->first();
-
-        // Hitung total_nilai
-        $total_nilai = $validatedData['nilai_baca'] + $validatedData['nilai_tulis'] + $validatedData['nilai_hitung'] + $validatedData['nilai_wawancara'];
-
-        // Hitung nilai_akhir
-        $nilai_akhir = $total_nilai / 4;
-
-        // Tentukan hasil_seleksi
-        $hasil_seleksi = $nilai_akhir > 74 ? 'Lolos' : 'Tidak Lolos';
-
-        // Dapatkan pendaftaran_id dari tabel pendaftaran
-        $pendaftaran_id = $casis->pendaftaran->id_pendaftaran;
-
-        // Periksa apakah data seleksi sudah ada
-        $seleksi = $casis->seleksi->first();
-
-        if ($seleksi) {
-        $seleksi->update([
-            'nilai_baca' => $validatedData['nilai_baca'],
-            'nilai_tulis' => $validatedData['nilai_tulis'],
-            'nilai_hitung' => $validatedData['nilai_hitung'],
-            'nilai_wawancara' => $validatedData['nilai_wawancara'],
-            'tgl_seleksi' => $validatedData['tgl_seleksi'],
-            'total_nilai' => $total_nilai,
-            'nilai_akhir' => $nilai_akhir,
-            'hasil_seleksi' => $hasil_seleksi,
-            'pendaftaran_id' => $pendaftaran_id,
-            'status' => 'Pending',
-        ]);
-        } else {
-            // Buat data seleksi baru
-            $casis->seleksi()->create([
-                'casis_id' => $casis->id_casis,
-                'pendaftaran_id' => $pendaftaran_id,
-                'nilai_baca' => $validatedData['nilai_baca'],
-                'nilai_tulis' => $validatedData['nilai_tulis'],
-                'nilai_hitung' => $validatedData['nilai_hitung'],
-                'nilai_wawancara' => $validatedData['nilai_wawancara'],
-                'tgl_seleksi' => $validatedData['tgl_seleksi'],
-                'total_nilai' => $total_nilai,
-                'nilai_akhir' => $nilai_akhir,
-                'hasil_seleksi' => $hasil_seleksi,
-                'status' => 'Pending', // Menambahkan status Pending
-            ]);
+        // Cek kelayakan peserta
+        if (!$casis->pembayaran || !in_array($casis->pembayaran->status_pembayaran, ['Lunas', 'Diterima'])) {
+            return redirect()->route('nilai')->with('error', 'Calon siswa ini belum menyelesaikan pembayaran pendaftaran.');
         }
 
-        // Redirect ke route 'nilai'
-        return redirect()->route('nilai')->with('success', 'Data Berhasil diInput!');
+        $seleksi = $casis->pembayaran->seleksi;
+        $data = $casis; // Kompatibilitas variabel $data di view
+        $isLocked = $seleksi ? $seleksi->isDiumumkan() : false;
+
+        return view('panitia.inputnilai', compact('data', 'casis', 'seleksi', 'isLocked'));
     }
 
-    public function hapus($id)
+    /**
+     * Simpan / perbarui nilai seleksi calon siswa (Draft Evaluasi)
+     */
+    public function simpan(Request $request, $id)
     {
-        // Temukan data seleksi berdasarkan id_casis
-        $seleksi = selekasi::where('casis_id', $id)->firstOrFail();
-
-        // Update nilai-nilai yang ingin dihapus
-        $seleksi->update([
-            'nilai_baca' => null,
-            'nilai_tulis' => null,
-            'nilai_hitung' => null,
-            'nilai_wawancara' => null,
-            'total_nilai' => null,
-            'nilai_akhir' => null,
-            'hasil_seleksi' => 'Tidak Lolos',
+        $validatedData = $request->validate([
+            'nilai_baca' => 'required|integer|min:0|max:100',
+            'nilai_tulis' => 'required|integer|min:0|max:100',
+            'nilai_hitung' => 'required|integer|min:0|max:100',
+            'tgl_seleksi' => 'required|date|before_or_equal:today',
+        ], [
+            'nilai_baca.required' => 'Nilai membaca wajib diisi.',
+            'nilai_baca.integer' => 'Nilai membaca harus berupa bilangan bulat.',
+            'nilai_baca.min' => 'Nilai membaca minimal 0.',
+            'nilai_baca.max' => 'Nilai membaca maksimal 100.',
+            'nilai_tulis.required' => 'Nilai menulis wajib diisi.',
+            'nilai_tulis.integer' => 'Nilai menulis harus berupa bilangan bulat.',
+            'nilai_tulis.min' => 'Nilai menulis minimal 0.',
+            'nilai_tulis.max' => 'Nilai menulis maksimal 100.',
+            'nilai_hitung.required' => 'Nilai berhitung wajib diisi.',
+            'nilai_hitung.integer' => 'Nilai berhitung harus berupa bilangan bulat.',
+            'nilai_hitung.min' => 'Nilai berhitung minimal 0.',
+            'nilai_hitung.max' => 'Nilai berhitung maksimal 100.',
+            'tgl_seleksi.required' => 'Tanggal penilaian seleksi wajib diisi.',
+            'tgl_seleksi.date' => 'Format tanggal penilaian tidak valid.',
+            'tgl_seleksi.before_or_equal' => 'Tanggal penilaian tidak boleh lebih dari hari ini.',
         ]);
 
-        // Redirect ke halaman yang sesuai, misalnya ke halaman sebelumnya
-        return redirect()->back();
+        $casis = CalonSiswa::with('pembayaran.seleksi')->where('id_calon_siswa', $id)->firstOrFail();
+        $pembayaran = $casis->pembayaran;
+
+        if (!$pembayaran || !in_array($pembayaran->status_pembayaran, ['Lunas', 'Diterima'])) {
+            return redirect()->back()->with('error', 'Calon siswa belum menyelesaikan pembayaran pendaftaran.');
+        }
+
+        // Cek apakah nilai seleksi sudah terkunci / diumumkan
+        if ($pembayaran->seleksi && $pembayaran->seleksi->isDiumumkan()) {
+            return redirect()->route('nilai')->with('error', 'Nilai seleksi telah dipublikasikan dan terkunci. Nilai tidak dapat diubah kembali.');
+        }
+
+        // Hitung total dan tentukan hasil seleksi di sisi SERVER (abaikan input klien apapun)
+        $nilaiBaca = (int) $validatedData['nilai_baca'];
+        $nilaiTulis = (int) $validatedData['nilai_tulis'];
+        $nilaiHitung = (int) $validatedData['nilai_hitung'];
+        $totalNilai = Seleksi::hitungTotalNilai($nilaiBaca, $nilaiTulis, $nilaiHitung);
+        $hasilSeleksi = Seleksi::hitungHasilSeleksi($totalNilai);
+
+        $panitia = Auth::user()?->panitia ?? Panitia::first();
+        $idPanitia = $panitia ? $panitia->id_panitia : null;
+
+        Seleksi::updateOrCreate(
+            ['id_pembayaran' => $pembayaran->id_pembayaran],
+            [
+                'id_panitia' => $idPanitia,
+                'tgl_seleksi' => $validatedData['tgl_seleksi'],
+                'nilai_baca' => $nilaiBaca,
+                'nilai_tulis' => $nilaiTulis,
+                'nilai_hitung' => $nilaiHitung,
+                'total_nilai' => $totalNilai,
+                'hasil_seleksi' => $hasilSeleksi,
+            ]
+        );
+
+        // Catatan: status_pendaftaran siswa TIDAK diubah di sini agar belum bocor sebelum pengumuman resmi dipublikasikan
+
+        return redirect()->route('nilai')->with('success', 'Penilaian seleksi untuk ' . $casis->nama_calon_siswa . ' berhasil disimpan sebagai draft.');
+    }
+
+    /**
+     * Hapus data nilai seleksi
+     */
+    public function hapus($id)
+    {
+        $casis = CalonSiswa::with('pembayaran.seleksi')->where('id_calon_siswa', $id)->firstOrFail();
+
+        if ($casis->pembayaran && $casis->pembayaran->seleksi) {
+            if ($casis->pembayaran->seleksi->isDiumumkan()) {
+                return redirect()->route('nilai')->with('error', 'Nilai seleksi telah dipublikasikan dan terkunci. Data tidak dapat dihapus.');
+            }
+
+            $casis->pembayaran->seleksi->delete();
+        }
+
+        return redirect()->route('nilai')->with('success', 'Data penilaian seleksi berhasil dihapus.');
     }
 }

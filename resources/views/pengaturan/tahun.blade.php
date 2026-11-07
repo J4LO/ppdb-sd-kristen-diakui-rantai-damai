@@ -65,51 +65,57 @@
 
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
-                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500">
+            <table class="w-full text-center text-sm border-collapse">
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs uppercase font-semibold tracking-wider">
                     <tr>
-                        <th class="px-6 py-4 font-semibold">No</th>
-                        <th class="px-6 py-4 font-semibold">Tahun Ajaran</th>
-                        <th class="px-6 py-4 font-semibold">Mulai Pendaftaran</th>
-                        <th class="px-6 py-4 font-semibold">Batas Pendaftaran</th>
-                        <th class="px-6 py-4 font-semibold">Tanggal Seleksi</th>
-                        <th class="px-6 py-4 font-semibold text-center">Kuota</th>
-                        <th class="px-6 py-4 font-semibold text-center">Status</th>
-                        <th class="px-6 py-4 font-semibold text-center">Aksi</th>
+                        <th class="w-10 px-2.5 py-3.5 text-center">No</th>
+                        <th class="px-2.5 py-3.5 text-center whitespace-nowrap">Tahun Ajaran</th>
+                        <th class="px-2.5 py-3.5 text-center whitespace-nowrap">Mulai Daftar</th>
+                        <th class="px-2.5 py-3.5 text-center whitespace-nowrap">Batas Daftar</th>
+                        <th class="px-2.5 py-3.5 text-center whitespace-nowrap">Tgl Seleksi</th>
+                        <th class="px-2.5 py-3.5 text-center whitespace-nowrap">Biaya Formulir</th>
+                        <th class="px-2.5 py-3.5 text-center whitespace-nowrap">Biaya Daftar Ulang</th>
+                        <th class="px-2.5 py-3.5 text-center">Kuota</th>
+                        <th class="px-2.5 py-3.5 text-center">Status</th>
+                        <th class="px-2.5 py-3.5 text-center w-20">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @forelse($data as $no => $value)
-                    <tr class="hover:bg-slate-50/50 transition-colors {{ $value->status == 'Berlangsung' ? 'bg-green-50/40' : '' }}">
-                        <td class="px-6 py-4 text-slate-500">{{ $no + 1 }}</td>
-                        <td class="px-6 py-4">
-                            <span class="font-bold text-slate-800 text-base">{{ $value->tahun_ajar }}</span>
+                    <tr class="hover:bg-slate-50/70 border-b border-slate-100 transition-colors align-middle {{ $value->status == 'Berlangsung' ? 'bg-green-50/30' : '' }}">
+                        <td class="w-10 px-2.5 py-3.5 text-center font-medium text-slate-500 text-sm">{{ $no + 1 }}</td>
+                        <td class="px-2.5 py-3.5 text-center whitespace-nowrap">
+                            <span class="font-bold text-slate-800 text-sm">{{ $value->tahun_ajar }}</span>
                         </td>
-                        <td class="px-6 py-4 text-slate-600">{{ \Carbon\Carbon::parse($value->mulai_pendaftaran)->format('d M Y') }}</td>
-                        <td class="px-6 py-4 text-slate-600">{{ \Carbon\Carbon::parse($value->batas_pendaftaran)->format('d M Y') }}</td>
-                        <td class="px-6 py-4 text-slate-600">{{ \Carbon\Carbon::parse($value->tgl_seleksi)->format('d M Y') }}</td>
-                        <td class="px-6 py-4 text-center font-semibold text-slate-700">{{ $value->kuota }}</td>
-                        <td class="px-6 py-4 text-center">
+                        <td class="px-2.5 py-3.5 text-slate-600 text-sm text-center whitespace-nowrap">{{ \Carbon\Carbon::parse($value->mulai_pendaftaran)->format('d M Y') }}</td>
+                        <td class="px-2.5 py-3.5 text-slate-600 text-sm text-center whitespace-nowrap">{{ \Carbon\Carbon::parse($value->batas_pendaftaran)->format('d M Y') }}</td>
+                        <td class="px-2.5 py-3.5 text-slate-600 text-sm text-center whitespace-nowrap">{{ \Carbon\Carbon::parse($value->tgl_seleksi)->format('d M Y') }}</td>
+                        <td class="px-2.5 py-3.5 text-center font-medium text-slate-700 text-sm whitespace-nowrap">Rp {{ number_format($value->biaya_pendaftaran ?? 150000, 0, ',', '.') }}</td>
+                        <td class="px-2.5 py-3.5 text-center whitespace-nowrap">
+                            <span class="font-bold text-slate-800 text-sm">Rp {{ number_format($value->biaya_daftar_ulang ?? 1000000, 0, ',', '.') }}</span>
+                        </td>
+                        <td class="px-2.5 py-3.5 text-center font-semibold text-slate-700 text-sm">{{ $value->kuota }}</td>
+                        <td class="px-2.5 py-3.5 text-center whitespace-nowrap">
                             @if($value->status == 'Berlangsung')
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200">
                                     <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse inline-block"></span> Berlangsung
                                 </span>
                             @elseif($value->status == 'Belum Dimulai')
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-200">
                                     <i class="fas fa-clock text-[9px]"></i> Belum Dimulai
                                 </span>
                             @else
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500 border border-slate-200">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200">
                                     <i class="fas fa-check text-[9px]"></i> Berakhir
                                 </span>
                             @endif
                         </td>
-                        <td class="px-6 py-4 text-center">
-                            <div class="flex items-center justify-center gap-2">
+                        <td class="px-2.5 py-3.5 text-center whitespace-nowrap">
+                            <div class="flex items-center justify-center gap-1.5">
                                 <a href="{{ route('tahun.edit', $value->id_ajar) }}"
                                     class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white transition-colors"
                                     title="Edit">
-                                    <i class="fas fa-edit text-sm"></i>
+                                    <i class="fas fa-edit text-xs"></i>
                                 </a>
                                 <form action="{{ route('tahun.delete', $value->id_ajar) }}" method="POST"
                                     onsubmit="return confirm('Hapus Tahun Ajaran {{ $value->tahun_ajar }}?\nData yang sudah terhapus tidak dapat dipulihkan.')">
@@ -118,7 +124,7 @@
                                     <button type="submit"
                                         class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-colors"
                                         title="Hapus">
-                                        <i class="fas fa-trash text-sm"></i>
+                                        <i class="fas fa-trash text-xs"></i>
                                     </button>
                                 </form>
                             </div>
@@ -126,7 +132,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="px-6 py-16 text-center">
+                        <td colspan="10" class="px-6 py-16 text-center">
                             <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-slate-100 text-slate-400 mb-4">
                                 <i class="fas fa-calendar-times text-2xl"></i>
                             </div>

@@ -1,51 +1,133 @@
-<div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6 hover:shadow-md transition-shadow h-full">
-    <div class="bg-linear-to-r from-blue-600 to-blue-500 px-6 py-4 flex items-center gap-3">
-        <i class="fas fa-route text-white text-lg"></i>
-        <h3 class="font-bold text-white font-heading text-lg">Alur Pendaftaran Online</h3>
+@php
+    $hasCasis = !empty($casis);
+    $pembayaran = $casis?->pembayaran;
+    $rawStatusBayar = strtolower($pembayaran?->status_pembayaran ?? '');
+    $isLunasBayar = $pembayaran && in_array($rawStatusBayar, ['lunas', 'diterima', 'settlement', 'success', 'capture']);
+    $seleksi = $casis?->seleksi;
+    $hasSeleksi = $seleksi && !empty($seleksi->hasil_seleksi) && $seleksi->isDiumumkan();
+    $isLulus = $hasSeleksi && in_array($seleksi->hasil_seleksi, ['Lulus', 'Lolos']);
+    $daftarUlang = $seleksi?->daftarUlang ?? $casis?->daftarUlang;
+    $totalLunasDu = $daftarUlang ? $daftarUlang->pembayaranDaftarUlang()->whereIn('status_du', ['Lunas', 'Diterima'])->sum('jml_bayar_du') : 0;
+    $totalBiayaDu = (float) ($tahunajar?->biaya_daftar_ulang ?? 1000000);
+    $isDaftarUlangSelesai = $daftarUlang && ($daftarUlang->status_daftar_ulang === 'Selesai' || $totalLunasDu >= $totalBiayaDu);
+
+    // Tentukan tahap aktif (1-5)
+    if (!$hasCasis) {
+        $tahapAktif = 2;
+    } elseif (!$isLunasBayar) {
+        $tahapAktif = 3;
+    } elseif (!$hasSeleksi) {
+        $tahapAktif = 4;
+    } else {
+        $tahapAktif = 5;
+    }
+
+    $steps = [
+        1 => [
+            'num'    => 1,
+            'title'  => 'Registrasi Akun',
+            'desc'   => 'Akun portal calon siswa berhasil dibuat dan aktif.',
+            'status' => 'selesai',
+        ],
+        2 => [
+            'num'    => 2,
+            'title'  => 'Isi Formulir & Dokumen',
+            'desc'   => 'Lengkapi data diri calon siswa dan berkas persyaratan.',
+            'status' => $hasCasis ? 'selesai' : ($tahapAktif == 2 ? 'aktif' : 'belum'),
+        ],
+        3 => [
+            'num'    => 3,
+            'title'  => 'Pembayaran Pendaftaran',
+            'desc'   => 'Bayar biaya formulir pendaftaran secara online via Midtrans.',
+            'status' => $isLunasBayar ? 'selesai' : ($tahapAktif == 3 ? 'aktif' : 'belum'),
+        ],
+        4 => [
+            'num'    => 4,
+            'title'  => 'Seleksi Observasi',
+            'desc'   => 'Ikuti tes observasi offline di sekolah sesuai jadwal.',
+            'status' => $hasSeleksi ? 'selesai' : ($tahapAktif == 4 ? 'aktif' : 'belum'),
+        ],
+        5 => [
+            'num'    => 5,
+            'title'  => 'Pengumuman & Daftar Ulang',
+            'desc'   => $isDaftarUlangSelesai ? 'Administrasi daftar ulang selesai.' : 'Cek hasil observasi dan selesaikan administrasi daftar ulang.',
+            'status' => ($hasSeleksi && $isLulus && $isDaftarUlangSelesai) ? 'selesai' : ($tahapAktif == 5 ? 'aktif' : 'belum'),
+        ],
+    ];
+@endphp
+
+<div id="card-alur" class="dash-card">
+
+    {{-- Header Kartu Alur --}}
+    <div class="dc-header shrink-0">
+        <div class="flex items-center gap-3 min-w-0">
+            <div class="dc-icon-wrap {{ $isDaftarUlangSelesai ? 'dc-icon-emerald' : 'dc-icon-blue' }} shrink-0">
+                <i class="fas {{ $isDaftarUlangSelesai ? 'fa-check-circle' : 'fa-route' }}" aria-hidden="true"></i>
+            </div>
+            <div class="min-w-0">
+                <h3 class="dc-title">Alur Pendaftaran Online</h3>
+                <span class="dc-subtitle">Tahapan Proses Penerimaan Siswa</span>
+            </div>
+        </div>
+        <span class="dc-badge {{ $isDaftarUlangSelesai ? 'dc-badge-emerald' : 'dc-badge-blue' }} shrink-0">
+            {{ $isDaftarUlangSelesai ? 'Selesai' : 'Tahap ' . $tahapAktif . ' dari 5' }}
+        </span>
     </div>
-    <div class="p-6 sm:p-8">
-        <div class="relative border-l-2 border-blue-100 ml-3 space-y-8 pb-4">
-            
-            {{-- Step 1 --}}
-            <div class="relative pl-8">
-                <div class="absolute left-[-17px] w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold shadow-md ring-4 ring-white">1</div>
-                <h5 class="font-bold text-slate-800 text-lg mb-1">Registrasi Akun</h5>
-                <p class="text-slate-600 text-sm">Registrasi akun pada website berhasil dilakukan.</p>
-            </div>
-            
-            {{-- Step 2 --}}
-            <div class="relative pl-8">
-                <div class="absolute left-[-17px] w-8 h-8 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold shadow-sm ring-4 ring-white">2</div>
-                <h5 class="font-bold text-slate-800 text-lg mb-1">Isi Formulir & Dokumen</h5>
-                <p class="text-slate-600 text-sm">Lengkapi data diri calon siswa dan unggah dokumen persyaratan (Akta Kelahiran, KK, Foto).</p>
-            </div>
 
-            {{-- Step 3 --}}
-            <div class="relative pl-8">
-                <div class="absolute left-[-17px] w-8 h-8 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold shadow-sm ring-4 ring-white">3</div>
-                <h5 class="font-bold text-slate-800 text-lg mb-1">Pembayaran Pendaftaran</h5>
-                <p class="text-slate-600 text-sm">Lakukan pembayaran biaya pendaftaran dan unggah bukti transfer.</p>
-            </div>
+    {{-- Body: Timeline 5 Langkah Mengisi Penuh Tinggi Kartu --}}
+    <div class="dc-body flex-1 flex flex-col justify-between">
 
-            {{-- Step 4 --}}
-            <div class="relative pl-8">
-                <div class="absolute left-[-17px] w-8 h-8 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold shadow-sm ring-4 ring-white">4</div>
-                <h5 class="font-bold text-slate-800 text-lg mb-1">Seleksi Observasi</h5>
-                <p class="text-slate-600 text-sm">Ikuti ujian seleksi secara Offline di sekolah sesuai jadwal yang ditentukan.</p>
-            </div>
+        <ol class="dc-timeline flex-1" aria-label="Alur pendaftaran">
+            @foreach($steps as $step)
+                <li class="dc-tl-item {{ $loop->last ? 'dc-tl-item-last' : '' }}">
 
-            {{-- Step 5 --}}
-            <div class="relative pl-8">
-                <div class="absolute left-[-17px] w-8 h-8 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold shadow-sm ring-4 ring-white">5</div>
-                <h5 class="font-bold text-slate-800 text-lg mb-1">Pengumuman & Daftar Ulang</h5>
-                <p class="text-slate-600 text-sm">Tunggu hasil seleksi. Jika lolos, segera lakukan daftar ulang.</p>
-            </div>
-        </div>
-        
-        <div class="mt-4 text-center">
-            <a href="{{ route('formcasis') }}" class="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-50 text-blue-700 hover:bg-blue-100 font-medium rounded-xl transition-colors">
-                Lanjut ke Tahap 2 <i class="fas fa-arrow-right text-sm"></i>
-            </a>
-        </div>
+                    {{-- Rail: Badge + Garis Vertikal --}}
+                    <div class="dc-tl-rail" aria-hidden="true">
+                        @if($step['status'] === 'selesai')
+                            <div class="dc-tl-badge dc-tl-done">
+                                <i class="fas fa-check dc-tl-icon"></i>
+                            </div>
+                        @elseif($step['status'] === 'aktif')
+                            <div class="dc-tl-badge dc-tl-active">
+                                <span class="dc-tl-num">{{ $step['num'] }}</span>
+                            </div>
+                        @else
+                            <div class="dc-tl-badge dc-tl-pending">
+                                <span class="dc-tl-num">{{ $step['num'] }}</span>
+                            </div>
+                        @endif
+
+                        @if(!$loop->last)
+                            <div class="dc-tl-line {{ $step['status'] === 'selesai' ? 'dc-tl-line-done' : 'dc-tl-line-pending' }}"></div>
+                        @endif
+                    </div>
+
+                    {{-- Konten Langkah: Rata Kiri --}}
+                    <div class="dc-tl-content">
+                        <span class="sr-only">Langkah {{ $step['num'] }},
+                            @if($step['status'] === 'selesai') selesai
+                            @elseif($step['status'] === 'aktif') sedang berjalan
+                            @else belum dilakukan
+                            @endif:
+                        </span>
+                        <div class="dc-tl-title-row">
+                            <h5 class="dc-tl-title
+                                @if($step['status'] === 'aktif') dc-tl-title-active
+                                @elseif($step['status'] === 'selesai') dc-tl-title-done
+                                @else dc-tl-title-pending
+                                @endif">
+                                {{ $step['title'] }}
+                            </h5>
+                            @if($step['status'] === 'selesai')
+                                <i class="fas fa-check-circle dc-tl-done-icon" aria-hidden="true"></i>
+                            @endif
+                        </div>
+                        <p class="dc-tl-desc">{{ $step['desc'] }}</p>
+                    </div>
+
+                </li>
+            @endforeach
+        </ol>
+
     </div>
 </div>

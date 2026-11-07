@@ -17,7 +17,7 @@
                 </div>
                 <div class="card-body">
                     <p style="color: red;">Silakan mengisi form buat akun terlebih dahulu sebelum menginput pendaftaran:</p>
-                    <form method="post" action="/admin/pendaftaran/proses-data/{{ $data->id_casis }}" onsubmit="return validateForm()">
+                    <form method="post" action="/admin/pendaftaran/proses-data/{{ $data->id_calon_siswa ?? $data->id_casis }}" onsubmit="return validateForm()">
                         @csrf
                         <!-- Form Pendaftaran Akun -->
                         <div class="row">
