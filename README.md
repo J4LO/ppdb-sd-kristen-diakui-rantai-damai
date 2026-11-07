@@ -112,17 +112,6 @@ Aplikasi dapat diakses di: **http://localhost:8000**
 
 ---
 
-## 👤 Akun Default
-
-| Role | Email | Password |
-|---|---|---|
-| Admin | admin1@gmail.com | 123123123 |
-| Panitia | panitia1@gmail.com | 123123123 |
-
-> ⚠️ **Penting:** Segera ganti password default setelah deploy ke production!
-
----
-
 ## 📁 Struktur URL Utama
 
 ```
