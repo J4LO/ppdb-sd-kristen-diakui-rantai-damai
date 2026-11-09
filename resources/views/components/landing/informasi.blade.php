@@ -1,13 +1,13 @@
 <section id="informasi" class="py-20 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center max-w-3xl mx-auto mb-16">
+        <div class="reveal text-center max-w-3xl mx-auto mb-16">
             <h2 class="text-green-600 font-bold tracking-wide uppercase text-sm mb-2">Visi & Misi</h2>
             <h3 class="font-heading text-3xl md:text-4xl font-bold text-slate-800 mb-4">Arah dan Tujuan Pendidikan</h3>
         </div>
 
         <div class="grid lg:grid-cols-2 gap-12 lg:gap-20">
             {{-- Visi --}}
-            <div class="flex flex-col h-full">
+            <div class="reveal-left flex flex-col h-full" data-delay="0">
                 <div class="bg-green-50 rounded-3xl p-8 lg:p-10 flex-1 border border-green-100 relative overflow-hidden">
                     <i class="fas fa-quote-left absolute -top-4 -left-2 text-8xl text-green-200/50"></i>
                     <div class="relative z-10">
@@ -25,7 +25,7 @@
             </div>
             
             {{-- Misi & Tujuan --}}
-            <div class="flex flex-col gap-8">
+            <div class="reveal flex flex-col gap-8" data-delay="100">
                 <div>
                     <h4 class="flex items-center gap-3 font-heading text-xl font-bold text-slate-800 mb-5 pb-3 border-b border-slate-100">
                         <div class="w-8 h-8 bg-amber-100 text-amber-600 rounded-lg flex items-center justify-center text-sm">

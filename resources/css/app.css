@@ -781,6 +781,147 @@
 }
 
 /* =============================================
+   Scroll Reveal & Flowchart Motion Animations
+   ============================================= */
+.reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 500ms ease, transform 500ms ease;
+    will-change: opacity, transform;
+}
+.reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.reveal-left {
+    opacity: 0;
+    transform: translateX(-28px);
+    transition: opacity 500ms ease, transform 500ms ease;
+    will-change: opacity, transform;
+}
+.reveal-left.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.reveal-scale {
+    opacity: 0;
+    transform: scale(0.94);
+    transition: opacity 500ms ease, transform 500ms ease;
+    will-change: opacity, transform;
+}
+.reveal-scale.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Hero Section Immediate Entrance */
+@keyframes heroFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(28px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+@keyframes heroScaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.94);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.hero-animate-1 {
+    animation: heroFadeUp 500ms ease 0ms forwards;
+}
+.hero-animate-2 {
+    animation: heroFadeUp 500ms ease 80ms forwards;
+}
+.hero-animate-3 {
+    animation: heroFadeUp 500ms ease 160ms forwards;
+}
+.hero-animate-scale {
+    animation: heroScaleIn 500ms ease 100ms forwards;
+}
+
+/* Flowchart Motion States */
+.flow-step {
+    opacity: 0;
+    transform: translateY(32px) scale(0.92);
+    transition: opacity 500ms ease, transform 500ms ease;
+    will-change: opacity, transform;
+}
+.flow-step.flow-visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.flow-step .flow-icon {
+    transform: scale(0.6);
+    transition: transform 400ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 200ms ease;
+}
+.flow-step.flow-visible .flow-icon {
+    transform: scale(1);
+}
+.flow-step .flow-icon:hover {
+    transform: scale(1.08);
+    box-shadow: 0 12px 28px rgba(21, 128, 61, 0.45);
+}
+
+.flow-arrow {
+    opacity: 0;
+    transition: opacity 400ms ease;
+}
+.flow-arrow.visible,
+.flow-step.flow-visible + .flow-arrow,
+.flow-step.flow-visible .flow-arrow,
+.flow-visible .flow-arrow {
+    opacity: 1;
+}
+
+/* CTA Pulse */
+@keyframes ctaPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(21, 128, 61, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 12px rgba(21, 128, 61, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(21, 128, 61, 0);
+    }
+}
+.btn-cta-pulse {
+    animation: ctaPulse 2s infinite;
+}
+.btn-cta-pulse:hover,
+.btn-cta-pulse:focus {
+    animation: none;
+}
+
+/* Prefers-reduced-motion Total Off-Switch */
+@media (prefers-reduced-motion: reduce) {
+    .reveal, .reveal-left, .reveal-scale,
+    .flow-step, .flow-step.flow-visible,
+    .flow-icon, .flow-step.flow-visible .flow-icon,
+    .flow-arrow,
+    .hero-animate-1, .hero-animate-2, .hero-animate-3, .hero-animate-scale,
+    .btn-cta-pulse {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+        animation: none !important;
+    }
+}
+
+/* =============================================
    Utility Overrides
    ============================================= */
 @layer utilities {

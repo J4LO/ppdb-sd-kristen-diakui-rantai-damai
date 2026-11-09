@@ -26,6 +26,7 @@ class TahunAjaran extends Model
         'biaya_daftar_ulang',
         'status',
         'tgl_seleksi',
+        'nama_kepala_sekolah',
     ];
 
     protected $casts = [

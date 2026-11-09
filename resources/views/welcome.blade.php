@@ -40,8 +40,9 @@
 <body class="font-sans antialiased text-slate-800 bg-slate-50" 
       x-data="{ 
           mobileMenuOpen: false, 
-          loginModalOpen: {{ session('error') || ($errors->any() && !old('name')) ? 'true' : 'false' }}, 
+          loginModalOpen: {{ (session('login_modal') || session('error') || ($errors->any() && !old('name') && !old('email_reset'))) ? 'true' : 'false' }}, 
           registerModalOpen: {{ ($errors->any() && old('name')) ? 'true' : 'false' }}, 
+          forgotPasswordModalOpen: {{ (session('forgot_error') || ($errors->any() && old('email_reset'))) ? 'true' : 'false' }}, 
           scrolled: false 
       }" 
       @scroll.window="scrolled = (window.pageYOffset > 20)">
@@ -61,5 +62,42 @@
     @include('components.landing.footer')
     @include('components.landing.modals')
 
+    {{-- Centralized Native Scroll-Triggered Transitions --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check prefers-reduced-motion: if enabled, reveal everything instantly without animation
+            const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (prefersReduced) {
+                document.querySelectorAll('.reveal, .reveal-left, .reveal-scale, .flow-step, .flow-arrow').forEach(el => {
+                    el.classList.add('visible', 'flow-visible');
+                });
+                return;
+            }
+
+            // Centralized Intersection Observer
+            const observer = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const el = entry.target;
+                        const delay = parseInt(el.dataset.delay || 0, 10);
+                        setTimeout(() => {
+                            el.classList.add('visible');
+                            if (el.classList.contains('flow-step')) {
+                                el.classList.add('flow-visible');
+                            }
+                        }, delay);
+                        obs.unobserve(el);
+                    }
+                });
+            }, { 
+                threshold: 0.15, 
+                rootMargin: '0px 0px -40px 0px' 
+            });
+
+            document.querySelectorAll('.reveal, .reveal-left, .reveal-scale, .flow-step, .flow-arrow').forEach(el => {
+                observer.observe(el);
+            });
+        });
+    </script>
 </body>
 </html>

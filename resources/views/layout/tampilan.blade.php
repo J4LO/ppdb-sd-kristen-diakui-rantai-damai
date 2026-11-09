@@ -184,8 +184,8 @@
         {{-- Brand & Tombol Tutup Mobile --}}
         <div class="sidebar-brand flex items-center justify-between px-4 py-2.5 border-b border-white/10 shrink-0">
             <div class="flex items-center gap-2.5 min-w-0">
-                <div class="w-8 h-8 bg-emerald-400/20 rounded-lg flex items-center justify-center shrink-0">
-                    <i class="fas fa-school text-emerald-300 text-sm" aria-hidden="true"></i>
+                <div class="w-9 h-9 flex items-center justify-center shrink-0">
+                    <img src="{{ asset('images/logo-sd-kristen-diakui-rantai-damai.png') }}" alt="Logo SD Kristen Diakui Rantai Damai" class="w-full h-full object-contain drop-shadow-sm">
                 </div>
                 <div class="min-w-0">
                     <p class="text-white font-bold text-sm leading-tight truncate">PPDB SD Kristen</p>
@@ -217,7 +217,14 @@
         </div>
 
         {{-- Navigation List (Scrollable Area) --}}
-        <nav class="flex-1 min-h-0 px-3 py-2 overflow-y-auto space-y-1.5 custom-sidebar-scroll" aria-label="Menu navigasi admin">
+        <nav class="flex-1 min-h-0 px-3 py-2 overflow-y-auto space-y-1.5 custom-sidebar-scroll"
+             x-init="$nextTick(() => {
+                 const active = $el.querySelector('.admin-nav-item.active');
+                 if (active) {
+                     active.scrollIntoView({ block: 'nearest' });
+                 }
+             })"
+             aria-label="Menu navigasi admin">
 
             {{-- 1. Dashboard (Mandiri di atas, tanpa judul grup) --}}
             @php
@@ -240,7 +247,7 @@
                 <ul role="list" aria-labelledby="group-pendaftaran" class="space-y-1">
                     {{-- Calon Siswa --}}
                     @php
-                        $isCasisActive = Request::is('admin/data/casis*') || Request::routeIs('indexcasis', 'editdata', 'detailcasis');
+                        $isCasisActive = Request::is('admin/data/casis*') || Request::routeIs('indexcasis', 'editdata', 'detailcasis', 'formpendaftaran');
                     @endphp
                     <li>
                         <a href="/admin/data/casis"
@@ -255,7 +262,7 @@
 
                     {{-- Verifikasi Dokumen --}}
                     @php
-                        $isPendaftaranActive = Request::is('admin/pendaftaran*') || Request::routeIs('datapendaftaran', 'formpendaftaran', 'periksadokumen', 'tampildata');
+                        $isPendaftaranActive = (Request::is('admin/pendaftaran*') && !Request::routeIs('formpendaftaran')) || Request::routeIs('datapendaftaran', 'periksadokumen', 'tampildata');
                     @endphp
                     <li>
                         <a href="/admin/pendaftaran"

@@ -21,11 +21,18 @@
 
         .kop-surat {
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+        }
+
+        .logo-sekolah {
+            width: 70px;
+            height: 70px;
+            margin-bottom: 6px;
+            display: inline-block;
         }
 
         .kop-surat h1 {
-            font-size: 16pt;
+            font-size: 15pt;
             margin: 0;
             font-weight: bold;
             color: #111827;
@@ -39,7 +46,7 @@
         }
 
         .kop-surat .line {
-            border-top: 2px solid #111827;
+            border-top: 3px solid #111827;
             border-bottom: 1px solid #111827;
             height: 2px;
             margin: 8px 0 12px 0;
@@ -158,22 +165,54 @@
             text-align: justify;
         }
 
-        /* Tanda Tangan */
-        .footer-ttd {
+        /* Tanda Tangan Dua Kolom: Kepala Sekolah di Kiri, Panitia di Kanan */
+        .ttd-table {
             width: 100%;
-            margin-top: 8px;
+            margin-top: 14px;
             margin-bottom: 12px;
+            border-collapse: collapse;
         }
 
-        .signature {
-            float: right;
+        .ttd-table td {
+            vertical-align: bottom;
+            padding: 0;
+        }
+
+        .ttd-col {
+            width: 42%;
             text-align: center;
-            width: 220px;
+            font-size: 10pt;
+            color: #111827;
+        }
+
+        .ttd-tengah {
+            width: 16%;
+        }
+
+        .ttd-col-kanan {
+            text-align: center;
+        }
+
+        .ttd-label {
+            margin: 0 0 2px 0;
             font-size: 10pt;
         }
 
-        .clear {
-            clear: both;
+        .ttd-jabatan {
+            margin: 0;
+            font-size: 10pt;
+        }
+
+        .ttd-garis {
+            border-bottom: 1px solid #111827;
+            width: 180px;
+            margin: 38px auto 4px auto;
+        }
+
+        .ttd-nama {
+            margin: 0;
+            font-size: 10pt;
+            font-weight: bold;
         }
 
         /* Catatan Daftar Ulang */
@@ -211,8 +250,43 @@
     </style>
 </head>
 
+@php
+    $logoJpg = public_path('images/logo-sd-kristen-diakui-rantai-damai.jpg');
+    $logoPng = public_path('images/logo-sd-kristen-diakui-rantai-damai.png');
+
+    if (file_exists($logoJpg)) {
+        $logoSrc = $logoJpg;
+    } elseif (file_exists($logoPng)) {
+        $logoSrc = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPng));
+    } else {
+        $logoSrc = null;
+    }
+
+    $bulanIndo = [
+        1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+        5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+        9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+    ];
+    $now = \Carbon\Carbon::now();
+    $tanggalCetak = $tanggalCetak ?? ($now->day . ' ' . $bulanIndo[$now->month] . ' ' . $now->year);
+    $kotaSekolah = $kotaSekolah ?? config('sekolah.kota', 'Rantai Damai');
+
+    if (empty($namaKepalaSekolah)) {
+        $namaKepalaSekolah = $aktivTahunAjaran?->nama_kepala_sekolah 
+            ?? (\App\Models\TahunAjaran::where('status', 'Berlangsung')->value('nama_kepala_sekolah') ?? config('sekolah.kepala_sekolah', 'Serni, S.Pd.K'));
+    }
+
+    if (empty($namaPanitia)) {
+        $panitia = \App\Models\User::where('role', 'Panitia')->first();
+        $namaPanitia = $panitia?->nama ?? 'Panitia PPDB';
+    }
+@endphp
+
 <body>
     <div class="kop-surat">
+        @if($logoSrc)
+            <img src="{{ $logoSrc }}" alt="Logo SD Kristen Diakui Rantai Damai" class="logo-sekolah">
+        @endif
         <h1>SD KRISTEN DIAKUI RANTAI DAMAI</h1>
         <p>Jl. Andi Pangeran, Desa Rantai Damai, Kec. Walenrang Timur, Kabupaten Luwu, Sulawesi Selatan</p>
         <div class="line"></div>
@@ -292,14 +366,28 @@
             Demikian surat keterangan hasil seleksi ini diterbitkan untuk dipergunakan sebagaimana mestinya.
         </p>
 
-        <div class="footer-ttd">
-            <div class="signature">
-                <p>Rantai Damai, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}<br>Kepala Sekolah,</p>
-                <div style="height: 48px;"></div>
-                <p><strong>Serni, S.Pd.K</strong></p>
-            </div>
-            <div class="clear"></div>
-        </div>
+        <table class="ttd-table">
+            <tr>
+                <!-- Kolom Kiri: Kepala Sekolah -->
+                <td class="ttd-col">
+                    <p class="ttd-label">Mengetahui,</p>
+                    <p class="ttd-jabatan">Kepala Sekolah</p>
+                    <div class="ttd-garis"></div>
+                    <p class="ttd-nama">{{ $namaKepalaSekolah }}</p>
+                </td>
+
+                <!-- Sel Tengah: Ruang Kosong -->
+                <td class="ttd-tengah"></td>
+
+                <!-- Kolom Kanan: Panitia Seleksi PPDB -->
+                <td class="ttd-col ttd-col-kanan">
+                    <p class="ttd-label">{{ $kotaSekolah }}, {{ $tanggalCetak }}</p>
+                    <p class="ttd-jabatan">Panitia Seleksi PPDB</p>
+                    <div class="ttd-garis"></div>
+                    <p class="ttd-nama">{{ $namaPanitia }}</p>
+                </td>
+            </tr>
+        </table>
 
         @if($isLulus)
             <div class="note-box">

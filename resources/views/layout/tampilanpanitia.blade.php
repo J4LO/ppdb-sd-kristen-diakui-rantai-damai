@@ -39,8 +39,8 @@
 
         {{-- Brand --}}
         <div class="sidebar-brand">
-            <div class="w-9 h-9 bg-amber-400/20 rounded-lg flex items-center justify-center shrink-0">
-                <i class="fas fa-clipboard-check text-amber-300 text-sm"></i>
+            <div class="w-9 h-9 flex items-center justify-center shrink-0">
+                <img src="{{ asset('images/logo-sd-kristen-diakui-rantai-damai.png') }}" alt="Logo SD Kristen Diakui Rantai Damai" class="w-full h-full object-contain drop-shadow-sm">
             </div>
             <div class="min-w-0">
                 <p class="text-white font-bold text-sm leading-tight truncate">PPDB SD Kristen</p>
@@ -64,53 +64,61 @@
 
         {{-- Navigation --}}
         <nav class="flex-1 px-2 py-3 space-y-1 overflow-y-auto flex flex-col justify-between">
-            <div class="space-y-0.5">
+            <div class="space-y-1">
                 {{-- Dashboard --}}
-                <a href="/beranda/panitia"
-                   class="sidebar-nav-item min-h-[44px] {{ Request::is('beranda/panitia') ? 'active' : '' }}"
-                   title="Dashboard"
-                   aria-label="Dashboard">
-                    <span class="w-5 flex items-center justify-center shrink-0 text-center">
-                        <i class="fas fa-home text-base"></i>
-                    </span>
-                    <span>Dashboard</span>
-                </a>
+                <div>
+                    <a href="/beranda/panitia"
+                       class="sidebar-nav-item min-h-[44px] {{ Request::is('beranda/panitia') ? 'active' : '' }}"
+                       title="Dashboard"
+                       aria-label="Dashboard">
+                        <span class="w-5 flex items-center justify-center shrink-0 text-center">
+                            <i class="fas fa-home text-base"></i>
+                        </span>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
 
                 {{-- Grup SELEKSI --}}
-                <div class="sidebar-group-title select-none">SELEKSI</div>
+                <div>
+                    <div class="sidebar-group-title select-none">SELEKSI</div>
+                    <div class="space-y-0.5">
+                        <a href="/panitia/evaluasi-seleksi"
+                           class="sidebar-nav-item min-h-[44px] {{ Request::is('panitia/evaluasi-seleksi') || Request::is('panitia/input_nilai/*') ? 'active' : '' }}"
+                           title="Penilaian Seleksi"
+                           aria-label="Penilaian Seleksi">
+                            <span class="w-5 flex items-center justify-center shrink-0 text-center">
+                                <i class="fas fa-clipboard-list text-base"></i>
+                            </span>
+                            <span>Penilaian Seleksi</span>
+                        </a>
 
-                <a href="/panitia/evaluasi-seleksi"
-                   class="sidebar-nav-item min-h-[44px] {{ Request::is('panitia/evaluasi-seleksi') || Request::is('panitia/input_nilai/*') ? 'active' : '' }}"
-                   title="Penilaian Seleksi"
-                   aria-label="Penilaian Seleksi">
-                    <span class="w-5 flex items-center justify-center shrink-0 text-center">
-                        <i class="fas fa-clipboard-list text-base"></i>
-                    </span>
-                    <span>Penilaian Seleksi</span>
-                </a>
-
-                <a href="{{ route('panitia.pengumuman.seleksi') }}"
-                   class="sidebar-nav-item min-h-[44px] {{ Request::routeIs('panitia.pengumuman.seleksi') ? 'active' : '' }}"
-                   title="Publikasi Hasil"
-                   aria-label="Publikasi Hasil">
-                    <span class="w-5 flex items-center justify-center shrink-0 text-center">
-                        <i class="fas fa-bullhorn text-base"></i>
-                    </span>
-                    <span>Publikasi Hasil</span>
-                </a>
+                        <a href="{{ route('panitia.pengumuman.seleksi') }}"
+                           class="sidebar-nav-item min-h-[44px] {{ Request::routeIs('panitia.pengumuman.seleksi') ? 'active' : '' }}"
+                           title="Publikasi Hasil"
+                           aria-label="Publikasi Hasil">
+                            <span class="w-5 flex items-center justify-center shrink-0 text-center">
+                                <i class="fas fa-bullhorn text-base"></i>
+                            </span>
+                            <span>Publikasi Hasil</span>
+                        </a>
+                    </div>
+                </div>
 
                 {{-- Grup LAPORAN --}}
-                <div class="sidebar-group-title select-none">LAPORAN</div>
-
-                <a href="/laporan/hasil casis"
-                   class="sidebar-nav-item min-h-[44px] {{ Request::is('laporan/hasil casis') ? 'active' : '' }}"
-                   title="Rekap Hasil Seleksi"
-                   aria-label="Rekap Hasil Seleksi">
-                    <span class="w-5 flex items-center justify-center shrink-0 text-center">
-                        <i class="fas fa-chart-pie text-base"></i>
-                    </span>
-                    <span>Rekap Hasil Seleksi</span>
-                </a>
+                <div>
+                    <div class="sidebar-group-title select-none">LAPORAN</div>
+                    <div class="space-y-0.5">
+                        <a href="/laporan/hasil casis"
+                           class="sidebar-nav-item min-h-[44px] {{ Request::is('laporan/hasil casis') ? 'active' : '' }}"
+                           title="Rekap Hasil Seleksi"
+                           aria-label="Rekap Hasil Seleksi">
+                            <span class="w-5 flex items-center justify-center shrink-0 text-center">
+                                <i class="fas fa-chart-pie text-base"></i>
+                            </span>
+                            <span>Rekap Hasil Seleksi</span>
+                        </a>
+                    </div>
+                </div>
             </div>
 
             {{-- Grup AKUN (di bawah dengan jarak aman) --}}

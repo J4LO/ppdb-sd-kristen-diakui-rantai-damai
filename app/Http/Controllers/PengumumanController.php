@@ -59,7 +59,25 @@ class PengumumanController extends Controller
         $aktivTahunAjaran = $casis->tahunAjaran;
         $data = $seleksi;
 
-        $pdf = Pdf::loadView('pengumuman.unduh', compact('data', 'casis', 'aktivTahunAjaran'));
+        $namaKepalaSekolah = $aktivTahunAjaran?->nama_kepala_sekolah 
+            ?? (\App\Models\TahunAjaran::where('status', 'Berlangsung')->value('nama_kepala_sekolah') ?? config('sekolah.kepala_sekolah', 'Serni, S.Pd.K'));
+
+        $panitia = \App\Models\User::where('role', 'Panitia')->first();
+        $namaPanitia = $panitia?->nama ?? 'Panitia PPDB';
+
+        $bulanIndo = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+        $now = \Carbon\Carbon::now();
+        $tanggalCetak = $now->day . ' ' . $bulanIndo[$now->month] . ' ' . $now->year;
+        $kotaSekolah = config('sekolah.kota', 'Rantai Damai');
+
+        $pdf = Pdf::loadView('pengumuman.unduh', compact(
+            'data', 'casis', 'aktivTahunAjaran',
+            'namaKepalaSekolah', 'namaPanitia', 'tanggalCetak', 'kotaSekolah'
+        ));
 
         return $pdf->download('pengumuman_seleksi_' . $casis->id_calon_siswa . '.pdf');
     }

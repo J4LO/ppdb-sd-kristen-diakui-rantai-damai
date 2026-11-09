@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
-class PanitiaDaftarUlangController extends Controller
+class AdminDaftarUlangController extends Controller
 {
     protected MidtransService $midtransService;
 
@@ -29,6 +29,10 @@ class PanitiaDaftarUlangController extends Controller
      */
     public function index(Request $request)
     {
+        if (!Auth::check() || Auth::user()?->role !== 'Admin') {
+            abort(403, 'Anda tidak memiliki izin untuk mengakses halaman ini.');
+        }
+
         // 1. Auto-sync untuk transaksi online yang masih berstatus Pending/Menunggu
         $pendingPayments = PembayaranDaftarUlang::whereIn('status_du', ['Menunggu', 'Pending'])
             ->whereNotNull('order_id_du')
@@ -169,6 +173,10 @@ class PanitiaDaftarUlangController extends Controller
      */
     public function show($id)
     {
+        if (!Auth::check() || Auth::user()?->role !== 'Admin') {
+            abort(403, 'Anda tidak memiliki izin untuk mengakses halaman ini.');
+        }
+
         [$casis, $daftarUlang] = $this->resolveCasisAndDaftarUlang($id);
 
         if ($daftarUlang) {
@@ -195,6 +203,10 @@ class PanitiaDaftarUlangController extends Controller
      */
     public function storePembayaranTunai(Request $request, $id)
     {
+        if (!Auth::check() || Auth::user()?->role !== 'Admin') {
+            abort(403, 'Anda tidak memiliki izin untuk mengakses halaman ini.');
+        }
+
         [$casis, $daftarUlang] = $this->resolveCasisAndDaftarUlang($id, true);
 
         $item = $this->decorateCasisDaftarUlang($casis);
@@ -273,6 +285,10 @@ class PanitiaDaftarUlangController extends Controller
      */
     public function updateBerkas(Request $request, $id)
     {
+        if (!Auth::check() || Auth::user()?->role !== 'Admin') {
+            abort(403, 'Anda tidak memiliki izin untuk mengakses halaman ini.');
+        }
+
         [$casis, $daftarUlang] = $this->resolveCasisAndDaftarUlang($id, true);
 
         $validated = $request->validate([
@@ -325,6 +341,10 @@ class PanitiaDaftarUlangController extends Controller
      */
     public function cetakKuitansi($id, $bayarId = null)
     {
+        if (!Auth::check() || Auth::user()?->role !== 'Admin') {
+            abort(403, 'Anda tidak memiliki izin untuk mengakses halaman ini.');
+        }
+
         [$casis, $daftarUlang] = $this->resolveCasisAndDaftarUlang($id);
 
         if (!$daftarUlang) {
@@ -449,6 +469,10 @@ class PanitiaDaftarUlangController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (!Auth::check() || Auth::user()?->role !== 'Admin') {
+            abort(403, 'Anda tidak memiliki izin untuk mengakses halaman ini.');
+        }
+
         [$casis, $daftarUlang] = $this->resolveCasisAndDaftarUlang($id, true);
 
         $validated = $request->validate([
@@ -558,6 +582,10 @@ class PanitiaDaftarUlangController extends Controller
      */
     public function laporanDaftarUlang(Request $request)
     {
+        if (!Auth::check() || Auth::user()?->role !== 'Admin') {
+            abort(403, 'Anda tidak memiliki izin untuk mengakses halaman ini.');
+        }
+
         $daftarUlang = $this->buildLaporanDaftarUlangQuery($request)->get();
 
         return view('laporan.daftar-ulang.index', compact('daftarUlang'));
@@ -568,6 +596,10 @@ class PanitiaDaftarUlangController extends Controller
      */
     public function cetak(Request $request)
     {
+        if (!Auth::check() || Auth::user()?->role !== 'Admin') {
+            abort(403, 'Anda tidak memiliki izin untuk mengakses halaman ini.');
+        }
+
         $daftarUlang = $this->buildLaporanDaftarUlangQuery($request)->get();
 
         $startDate = $request->start_date;
@@ -586,7 +618,24 @@ class PanitiaDaftarUlangController extends Controller
         $activeFilter = $request->only(['start_date', 'end_date', 'status', 'status_berkas', 'id_tahun_ajaran', 'search']);
         $filterTahunAjaran = !empty($activeFilter['id_tahun_ajaran']) ? \App\Models\TahunAjaran::find($activeFilter['id_tahun_ajaran']) : null;
 
-        return view('laporan.daftar-ulang.cetak', compact('daftarUlang', 'periodText', 'activeFilter', 'filterTahunAjaran'));
+        $namaKepalaSekolah = \App\Models\TahunAjaran::where('status', 'Berlangsung')->value('nama_kepala_sekolah')
+            ?? config('sekolah.kepala_sekolah', 'Serni, S.Pd.K');
+        $jabatanPetugas = 'Administrator';
+        $namaPetugas = Auth::user()?->nama ?? (Auth::user()?->name ?? 'Administrator');
+
+        $bulanIndo = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+        $now = \Carbon\Carbon::now();
+        $tanggalCetak = $now->day . ' ' . $bulanIndo[$now->month] . ' ' . $now->year;
+        $kotaSekolah = config('sekolah.kota', 'Rantai Damai');
+
+        return view('laporan.daftar-ulang.cetak', compact(
+            'daftarUlang', 'periodText', 'activeFilter', 'filterTahunAjaran',
+            'namaKepalaSekolah', 'jabatanPetugas', 'namaPetugas', 'tanggalCetak', 'kotaSekolah'
+        ));
     }
 
     /**
@@ -750,3 +799,4 @@ class PanitiaDaftarUlangController extends Controller
         return [$casis, $du];
     }
 }
+

@@ -160,6 +160,7 @@ class PengaturanController extends Controller
             'status' => $request->status,
             'tgl_seleksi' => $request->tgl_seleksi,
             'kuota' => $request->kuota,
+            'nama_kepala_sekolah' => $request->input('nama_kepala_sekolah') ?? config('sekolah.kepala_sekolah', 'Serni, S.Pd.K'),
             'biaya_pendaftaran' => $request->biaya_pendaftaran ?? 150000,
             'biaya_pembangunan' => $biayaPembangunan,
             'biaya_buku' => $biayaBuku,
@@ -185,6 +186,7 @@ class PengaturanController extends Controller
             'status' => $request->input('status'),
             'tgl_seleksi' => $request->input('tgl_seleksi'),
             'kuota' => $request->input('kuota'),
+            'nama_kepala_sekolah' => $request->input('nama_kepala_sekolah'),
         ];
 
         if ($request->filled('biaya_pendaftaran')) {

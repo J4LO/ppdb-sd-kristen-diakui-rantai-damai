@@ -68,8 +68,8 @@
 
         {{-- Brand --}}
         <div class="sidebar-brand">
-            <div class="w-9 h-9 bg-blue-400/20 rounded-lg flex items-center justify-center shrink-0">
-                <i class="fas fa-user-graduate text-blue-300 text-sm"></i>
+            <div class="w-9 h-9 flex items-center justify-center shrink-0">
+                <img src="{{ asset('images/logo-sd-kristen-diakui-rantai-damai.png') }}" alt="Logo SD Kristen Diakui Rantai Damai" class="w-full h-full object-contain drop-shadow-sm">
             </div>
             <div class="min-w-0">
                 <p class="text-white font-bold text-sm leading-tight truncate">PPDB SD Kristen</p>

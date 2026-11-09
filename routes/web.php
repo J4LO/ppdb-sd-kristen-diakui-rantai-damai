@@ -13,7 +13,7 @@ use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\PengumumanController;
 use App\Http\Controllers\PendaftaranController;
 use App\Http\Controllers\BiayaDaftarUlangController;
-use App\Http\Controllers\PanitiaDaftarUlangController;
+use App\Http\Controllers\AdminDaftarUlangController;
 use App\Http\Controllers\CalonSiswaDaftarUlangController;
 use App\Http\Controllers\DokumenController;
 use App\Http\Controllers\MidtransWebhookController;
@@ -22,6 +22,7 @@ use App\Http\Controllers\MidtransWebhookController;
 Route::get('/', [PengaturanController::class, 'index'])->name('login');
 Route::post('/registrasi', [LoginController::class, 'registrasi'])->name('registrasi');
 Route::post('/loginproses', [LoginController::class, 'loginproses'])->name('loginproses');
+Route::post('/lupa-password', [LoginController::class, 'resetPasswordPublic'])->name('password.reset.public');
 Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // Midtrans Webhook Notification Callback
@@ -77,8 +78,6 @@ Route::middleware(['auth'])->group(function () {
             Route::get('hasil casis', [LaporanController::class, 'hasilcasis'])->name('hasilcasis');
             Route::get('siswa lulus', [LaporanController::class, 'diterimacasis'])->name('diterimacasis');
             Route::get('siswa/tidak lulus', [LaporanController::class, 'gagalcasis'])->name('gagalcasis');
-            Route::get('daftar-ulang', [PanitiaDaftarUlangController::class, 'laporanDaftarUlang'])->name('laporan.daftar-ulang.index');
-            Route::get('daftar-ulang/cetak', [PanitiaDaftarUlangController::class, 'cetak'])->name('laporan.daftar-ulang.cetak');
         });
 
         Route::prefix('unduh')->group(function () {
@@ -145,8 +144,8 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('laporan')->group(function () {
             Route::get('pendaftaran', [LaporanController::class, 'pendaftaran'])->name('admin.pendaftaran');
             Route::get('pembayaran', [LaporanController::class, 'pembayaran'])->name('admin.pembayaran');
-            Route::get('daftar-ulang', [PanitiaDaftarUlangController::class, 'laporanDaftarUlang'])->name('admin.laporan.daftar-ulang.index');
-            Route::get('daftar-ulang/cetak', [PanitiaDaftarUlangController::class, 'cetak'])->name('admin.laporan.daftar-ulang.cetak');
+            Route::get('daftar-ulang', [AdminDaftarUlangController::class, 'laporanDaftarUlang'])->name('admin.laporan.daftar-ulang.index');
+            Route::get('daftar-ulang/cetak', [AdminDaftarUlangController::class, 'cetak'])->name('admin.laporan.daftar-ulang.cetak');
         });
 
         Route::prefix('unduh')->group(function () {
@@ -175,12 +174,12 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::prefix('verifikasi-daftar-ulang')->group(function () {
-            Route::get('/', [PanitiaDaftarUlangController::class, 'index'])->name('admin.daftar_ulang.index');
-            Route::get('/{id}', [PanitiaDaftarUlangController::class, 'show'])->name('admin.daftar_ulang.show');
-            Route::put('/{id}', [PanitiaDaftarUlangController::class, 'update'])->name('admin.daftar_ulang.update');
-            Route::post('/{id}/catat-pembayaran', [PanitiaDaftarUlangController::class, 'storePembayaranTunai'])->name('admin.daftar_ulang.catat_pembayaran');
-            Route::post('/{id}/terima-berkas', [PanitiaDaftarUlangController::class, 'updateBerkas'])->name('admin.daftar_ulang.terima_berkas');
-            Route::get('/{id}/kuitansi/{bayarId?}', [PanitiaDaftarUlangController::class, 'cetakKuitansi'])->name('admin.daftar_ulang.kuitansi');
+            Route::get('/', [AdminDaftarUlangController::class, 'index'])->name('admin.daftar_ulang.index');
+            Route::get('/{id}', [AdminDaftarUlangController::class, 'show'])->name('admin.daftar_ulang.show');
+            Route::put('/{id}', [AdminDaftarUlangController::class, 'update'])->name('admin.daftar_ulang.update');
+            Route::post('/{id}/catat-pembayaran', [AdminDaftarUlangController::class, 'storePembayaranTunai'])->name('admin.daftar_ulang.catat_pembayaran');
+            Route::post('/{id}/terima-berkas', [AdminDaftarUlangController::class, 'updateBerkas'])->name('admin.daftar_ulang.terima_berkas');
+            Route::get('/{id}/kuitansi/{bayarId?}', [AdminDaftarUlangController::class, 'cetakKuitansi'])->name('admin.daftar_ulang.kuitansi');
         });
 
         Route::prefix('biaya-daftar-ulang')->group(function () {

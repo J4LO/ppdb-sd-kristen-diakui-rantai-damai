@@ -13,6 +13,31 @@ use Illuminate\Support\Facades\Session;
 class LaporanController extends Controller
 {
     /**
+     * Helper data tanda tangan laporan dua kolom (Kepala Sekolah & Petugas)
+     */
+    protected function resolveSignatureData(string $defaultRole = 'Administrator'): array
+    {
+        $namaKepalaSekolah = TahunAjaran::where('status', 'Berlangsung')->value('nama_kepala_sekolah')
+            ?? config('sekolah.kepala_sekolah', 'Serni, S.Pd.K');
+
+        $user = auth()->user();
+        $authRole = $user?->role ?? null;
+        $jabatanPetugas = ($authRole === 'Panitia') ? 'Panitia PPDB' : ($authRole === 'Admin' ? 'Administrator' : $defaultRole);
+        $namaPetugas = $user?->nama ?? ($user?->name ?? $jabatanPetugas);
+
+        $bulanIndo = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+        $now = \Carbon\Carbon::now();
+        $tanggalCetak = $now->day . ' ' . $bulanIndo[$now->month] . ' ' . $now->year;
+        $kotaSekolah = config('sekolah.kota', 'Rantai Damai');
+
+        return compact('namaKepalaSekolah', 'jabatanPetugas', 'namaPetugas', 'tanggalCetak', 'kotaSekolah');
+    }
+
+    /**
      * Membangun query data pendaftaran calon siswa dengan filter dinamis
      */
     protected function buildPendaftaranQuery(Request $request)
@@ -106,7 +131,8 @@ class LaporanController extends Controller
             $filterTahunAjaran = TahunAjaran::find($activeFilter['id_tahun_ajaran']);
         }
 
-        $pdf = Pdf::loadView('laporan.unduhpendaftaran', compact('data', 'activeFilter', 'filterTahunAjaran'))
+        $sig = $this->resolveSignatureData('Administrator');
+        $pdf = Pdf::loadView('laporan.unduhpendaftaran', array_merge(compact('data', 'activeFilter', 'filterTahunAjaran'), $sig))
                   ->setPaper('a4', 'landscape');
 
         $filename = 'laporan_pendaftaran';
@@ -221,7 +247,8 @@ class LaporanController extends Controller
             $filterTahunAjaran = TahunAjaran::find($activeFilter['id_tahun_ajaran']);
         }
 
-        $pdf = Pdf::loadView('laporan.unduhpembayaran', compact('data', 'activeFilter', 'filterTahunAjaran'))
+        $sig = $this->resolveSignatureData('Administrator');
+        $pdf = Pdf::loadView('laporan.unduhpembayaran', array_merge(compact('data', 'activeFilter', 'filterTahunAjaran'), $sig))
                   ->setPaper('a4', 'landscape');
 
         $filename = 'laporan_pembayaran';
@@ -372,7 +399,8 @@ class LaporanController extends Controller
             $filterTahunAjaran = TahunAjaran::find($activeFilter['id_tahun_ajaran']);
         }
 
-        $pdf = Pdf::loadView('laporan.unduhseleksi', compact('data', 'activeFilter', 'filterTahunAjaran'))
+        $sig = $this->resolveSignatureData('Panitia PPDB');
+        $pdf = Pdf::loadView('laporan.unduhseleksi', array_merge(compact('data', 'activeFilter', 'filterTahunAjaran'), $sig))
                   ->setPaper('a4', 'landscape');
 
         // Nama file dinamis mencerminkan filter yang dipilih
@@ -446,7 +474,8 @@ class LaporanController extends Controller
             return redirect()->back()->with('error', 'Tidak ada data siswa diterima untuk diunduh.');
         }
 
-        $pdf = Pdf::loadView('laporan.unduhditerima', compact('data'))->setPaper('a4', 'landscape');
+        $sig = $this->resolveSignatureData('Panitia PPDB');
+        $pdf = Pdf::loadView('laporan.unduhditerima', array_merge(compact('data'), $sig))->setPaper('a4', 'landscape');
 
         return $pdf->download('laporan_siswa_diterima.pdf');
     }
@@ -509,7 +538,8 @@ class LaporanController extends Controller
             return redirect()->back()->with('error', 'Tidak ada data siswa tidak lulus untuk diunduh.');
         }
 
-        $pdf = Pdf::loadView('laporan.unduhgagal', compact('data'))->setPaper('a4', 'landscape');
+        $sig = $this->resolveSignatureData('Panitia PPDB');
+        $pdf = Pdf::loadView('laporan.unduhgagal', array_merge(compact('data'), $sig))->setPaper('a4', 'landscape');
 
         return $pdf->download('laporan_siswa_tidak_lulus.pdf');
     }

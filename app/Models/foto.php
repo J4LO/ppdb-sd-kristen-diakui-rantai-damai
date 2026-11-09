@@ -18,4 +18,14 @@ class foto extends Model
         'foto',
         'status',
     ];
+
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            if (empty($model->id_foto)) {
+                $maxId = static::max('id_foto') ?? 0;
+                $model->id_foto = $maxId + 1;
+            }
+        });
+    }
 }

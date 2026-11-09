@@ -6,17 +6,17 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full pb-16">
         <div class="grid lg:grid-cols-2 gap-12 items-center">
             <div class="text-center lg:text-left">
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 text-white/90 text-sm font-medium mb-6 border border-white/20 backdrop-blur-sm">
+                <div class="hero-animate-1 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 text-white/90 text-sm font-medium mb-6 border border-white/20 backdrop-blur-sm">
                     <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
                     PPDB Tahun Pelajaran {{ $aktivTahunAjaran->tahun_ajar ?? date('Y').'/'.(date('Y')+1) }} Dibuka
                 </div>
-                <h1 class="font-heading text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6">
+                <h1 class="hero-animate-1 font-heading text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6">
                     Selamat Datang di PPDB <span class="text-transparent bg-clip-text bg-linear-to-r from-amber-300 to-amber-500">SD Kristen Diakui Rantai Damai</span>
                 </h1>
-                <p class="text-lg text-green-50 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+                <p class="hero-animate-2 text-lg text-green-50 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
                     Mendaftar kini lebih mudah! Lakukan pendaftaran, upload dokumen, dan pantau status penerimaan putra-putri Anda secara online kapan saja dan di mana saja.
                 </p>
-                <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <div class="hero-animate-3 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                     <button @click="registerModalOpen = true" class="bg-amber-500 hover:bg-amber-600 text-white px-8 py-3.5 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all">
                         Daftar Sekarang <i class="fas fa-arrow-right ml-2"></i>
                     </button>
@@ -26,7 +26,7 @@
                 </div>
             </div>
             
-            <div class="hidden lg:block relative">
+            <div class="hero-animate-scale hidden lg:block relative">
                 <div class="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white/20 transform rotate-2 hover:rotate-0 transition-transform duration-500"
                      x-data="{ 
                          images: [

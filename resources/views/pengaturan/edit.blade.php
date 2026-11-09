@@ -200,6 +200,19 @@
                     </select>
                     <p class="text-slate-400 text-xs mt-1">Hanya satu tahun ajaran yang boleh berstatus <strong>"Berlangsung"</strong> pada satu waktu.</p>
                 </div>
+
+                {{-- Nama Kepala Sekolah --}}
+                <div class="md:col-span-2">
+                    <label for="nama_kepala_sekolah" class="block text-sm font-semibold text-slate-700 mb-2">
+                        Nama Kepala Sekolah
+                    </label>
+                    <input type="text" id="nama_kepala_sekolah" name="nama_kepala_sekolah"
+                        value="{{ old('nama_kepala_sekolah', $data->nama_kepala_sekolah) }}"
+                        maxlength="100"
+                        placeholder="cth. Serni, S.Pd.K"
+                        class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-700 font-medium focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all placeholder-slate-400">
+                    <p class="text-slate-400 text-xs mt-1">Nama ini dicantumkan sebagai penandatangan lembar laporan cetak dan PDF.</p>
+                </div>
             </div>
 
             <div class="mt-8 pt-6 border-t border-slate-100 flex gap-3">

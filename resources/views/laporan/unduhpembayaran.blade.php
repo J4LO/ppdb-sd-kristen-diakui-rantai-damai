@@ -1,168 +1,102 @@
-<!DOCTYPE html>
-<html>
+@extends('layout.cetak-laporan')
 
-<head>
-    <title>Laporan Data Pembayaran Pendaftaran</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 12px;
-            color: #1e293b;
-        }
+@section('title', 'Laporan Pembayaran Pendaftaran')
+@section('page-size', 'A4 landscape')
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+@php
+    $isDomPdf = true;
 
-        th,
-        td {
-            border: 1px solid black;
-            padding: 6px 8px;
-            text-align: center;
-            white-space: nowrap;
-        }
+    // Menentukan teks tahun ajaran
+    $taText = 'Semua';
+    if (!empty($filterTahunAjaran)) {
+        $taText = $filterTahunAjaran->tahun_ajaran;
+    } elseif (!empty($activeFilter['id_tahun_ajaran'])) {
+        $taText = $activeFilter['id_tahun_ajaran'];
+    } elseif ($data->isNotEmpty() && $data->first()?->calonSiswa?->tahunAjaran) {
+        $taText = $data->first()->calonSiswa->tahunAjaran->tahun_ajaran;
+    }
 
-        th {
-            background-color: #059669;
-            color: white;
-            font-weight: bold;
-            font-size: 11px;
-        }
+    // Menentukan teks periode
+    if (!empty($activeFilter['start_date']) || !empty($activeFilter['end_date'])) {
+        $tglMulai = !empty($activeFilter['start_date']) ? \Carbon\Carbon::parse($activeFilter['start_date'])->format('d/m/Y') : 'Awal';
+        $tglSelesai = !empty($activeFilter['end_date']) ? \Carbon\Carbon::parse($activeFilter['end_date'])->format('d/m/Y') : 'Akhir';
+        $periodeText = "{$tglMulai} s/d {$tglSelesai}";
+    } else {
+        $periodeText = "Seluruh Data";
+    }
 
-        .filter-info-box {
-            margin-bottom: 15px;
-            font-size: 11px;
-            color: #333333;
-            text-align: center;
-            background-color: #f8fafc;
-            border: 1px solid #e2e8f0;
-            padding: 6px 10px;
-        }
+    $totalNominal = $data->whereIn('status_pembayaran', ['Lunas', 'Diterima', 'Settlement', 'success'])->sum('jml_pembayaran');
+    if ($totalNominal == 0) {
+        $totalNominal = $data->where('status_bayar', 'Lunas')->sum('jml_pembayaran');
+    }
+@endphp
 
-        .center {
-            text-align: center;
-        }
+@section('judul-laporan', 'LAPORAN PEMBAYARAN FORMULIR PENDAFTARAN')
 
-        .title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 3px;
-        }
+@section('baris-meta')
+    Tahun Ajaran: {{ $taText }} &middot; Periode: {{ $periodeText }}
+    @if(!empty($activeFilter['filter_program']))
+        &middot; Status: {{ ucfirst(strtolower($activeFilter['filter_program'])) }}
+    @endif
+    @if(!empty($activeFilter['search']))
+        &middot; Kata Kunci: "{{ $activeFilter['search'] }}"
+    @endif
+@endsection
 
-        .jalan {
-            font-size: 11px;
-            margin-bottom: 5px;
-            color: #444;
-        }
+@section('jumlah-data')
+    Jumlah Data: {{ $data->count() }} Transaksi &middot; Total Dana Masuk: Rp {{ number_format($totalNominal, 0, ',', '.') }}
+@endsection
 
-        .line {
-            border: none;
-            border-top: 2px solid black;
-            margin-bottom: 12px;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="center title">SD KRISTEN DIAKUI RANTAI DAMAI</div>
-    <div class="center jalan">Jl. Andi Pangeran, Desa Rantai Damai, Kec. Walenrang Timur, Kab. Luwu, Sulawesi Selatan</div>
-    <div class="center line"></div>
-
-    <h3 style="text-align: center; margin-bottom: 6px; font-size: 15px; text-transform: uppercase;">
-        Laporan Rekapitulasi Pembayaran Formulir Pendaftaran
-    </h3>
-
-    @php
-        $filters = [];
-        if (!empty($filterTahunAjaran)) {
-            $filters[] = "Tahun Ajaran: <strong>" . e($filterTahunAjaran->tahun_ajaran) . "</strong>";
-        } elseif (!empty($activeFilter['id_tahun_ajaran'])) {
-            $filters[] = "Tahun Ajaran ID: <strong>" . e($activeFilter['id_tahun_ajaran']) . "</strong>";
-        }
-
-        if (!empty($activeFilter['filter_program'])) {
-            $filters[] = "Status Pembayaran: <strong>" . strtoupper(e($activeFilter['filter_program'])) . "</strong>";
-        }
-
-        if (!empty($activeFilter['start_date']) || !empty($activeFilter['end_date'])) {
-            $tglMulai = !empty($activeFilter['start_date']) ? \Carbon\Carbon::parse($activeFilter['start_date'])->format('d/m/Y') : 'Awal';
-            $tglSelesai = !empty($activeFilter['end_date']) ? \Carbon\Carbon::parse($activeFilter['end_date'])->format('d/m/Y') : 'Akhir';
-            $filters[] = "Periode Bayar: <strong>{$tglMulai} s/d {$tglSelesai}</strong>";
-        }
-
-        if (!empty($activeFilter['search'])) {
-            $filters[] = "Kata Kunci: <strong>\"" . e($activeFilter['search']) . "\"</strong>";
-        }
-
-        $totalNominal = $data->whereIn('status_pembayaran', ['Lunas', 'Diterima'])->sum('jml_pembayaran');
-        if ($totalNominal == 0) {
-            $totalNominal = $data->where('status_bayar', 'Lunas')->sum('jml_pembayaran');
-        }
-
-        $filters[] = "Jumlah Transaksi: <strong>" . $data->count() . " Transaksi</strong>";
-        $filters[] = "Total Dana Masuk: <strong>Rp " . number_format($totalNominal, 0, ',', '.') . "</strong>";
-    @endphp
-
-    <div class="filter-info-box">
-        {!! implode(' &nbsp;|&nbsp; ', $filters) !!}
-    </div>
-
-    <table class="table">
-        <thead>
-            <tr>
-                <th style="width: 25px; text-align: center;">No</th>
-                <th style="width: 110px; text-align: center;">No. Pendaftaran</th>
-                <th style="width: 190px; text-align: center;">Order ID</th>
-                <th style="text-align: left;">Nama Calon Siswa</th>
-                <th style="width: 85px; text-align: center;">Tgl Bayar</th>
-                <th style="width: 95px; text-align: right;">Nominal</th>
-                <th style="width: 120px; text-align: center;">Metode</th>
-                <th style="width: 75px; text-align: center;">Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($data as $no => $value)
-            @php
-                $casis = $value->calonSiswa ?? $value->casis;
-                $noReg = $casis?->no_registrasi ?? '-';
-                $nama = $casis?->nama_calon_siswa ?? ($casis?->nama ?? '-');
-                $tglBayar = $value->tgl_pembayaran ? \Carbon\Carbon::parse($value->tgl_pembayaran)->format('d-m-Y') : '-';
-                $nominal = (float) ($value->jml_pembayaran ?? ($value->jumlah_pembayaran ?? 0));
-                $metode = $value->metode_pembayaran ?? ($value->channel ?? 'Midtrans Gateway');
-                $status = $value->status_pembayaran ?? ($value->status_bayar ?? '-');
-                $isLunas = in_array(strtoupper($status), ['LUNAS', 'DITERIMA', 'SETTLEMENT', 'SUCCESS']);
-            @endphp
-            <tr>
-                <td style="text-align: center;">{{ $no + 1 }}</td>
-                <td style="text-align: center; font-weight: bold;">{{ $noReg }}</td>
-                <td style="text-align: center; font-family: monospace;">{{ $value->order_id ?? '-' }}</td>
-                <td style="text-align: left; font-weight: bold;">{{ $nama }}</td>
-                <td style="text-align: center;">{{ $tglBayar }}</td>
-                <td style="text-align: right; font-weight: bold;">Rp {{ number_format($nominal, 0, ',', '.') }}</td>
-                <td style="text-align: center;">{{ $metode }}</td>
-                <td style="color: {{ $isLunas ? '#047857' : '#b91c1c' }}; font-weight: bold; text-align: center;">{{ $status }}</td>
-            </tr>
-            @empty
-            <tr>
-                <td colspan="8" style="padding: 15px; color: #666; text-align: center;">Tidak ada data pembayaran yang sesuai kriteria filter</td>
-            </tr>
-            @endforelse
-        </tbody>
-    </table>
-
-    <br><br>
-    <table style="border: none; width: 100%;">
-        <tr style="border: none;">
-            <td style="border: none; width: 60%;"></td>
-            <td style="border: none; width: 40%; text-align: center;">
-                <div>Rantai Damai, {{ date('d F Y') }}</div>
-                <div style="font-weight: bold;">Bendahara / Panitia PPDB</div>
-                <br><br><br><br>
-                <div style="text-decoration: underline; font-weight: bold;">( Panitia PPDB )</div>
-            </td>
+@section('konten-tabel')
+<table class="laporan-table">
+    <thead>
+        <tr>
+            <th style="width: 4%;">No</th>
+            <th style="width: 15%;">No. Pendaftaran</th>
+            <th style="width: 19%;">Order ID</th>
+            <th style="width: 22%; text-align: left;">Nama Calon Siswa</th>
+            <th style="width: 11%;">Tgl Bayar</th>
+            <th style="width: 12%; text-align: right;">Nominal</th>
+            <th style="width: 9%;">Metode</th>
+            <th style="width: 8%;">Status Pembayaran</th>
         </tr>
-    </table>
-</body>
+    </thead>
+    <tbody>
+        @forelse($data as $no => $value)
+        @php
+            $casis = $value->calonSiswa ?? $value->casis;
+            $noReg = $casis?->no_registrasi ?? '-';
+            $nama = $casis?->nama_calon_siswa ?? ($casis?->nama ?? '-');
+            $tglBayar = $value->tgl_pembayaran ? \Carbon\Carbon::parse($value->tgl_pembayaran)->format('d-m-Y') : '-';
+            $nominal = (float) ($value->jml_pembayaran ?? ($value->jumlah_pembayaran ?? 0));
+            $metode = $value->metode_pembayaran ?? ($value->channel ?? 'Midtrans');
+            $rawStatus = $value->status_pembayaran ?? ($value->status_bayar ?? '-');
 
-</html>
+            // Normalisasi status pembayaran ke istilah standar tanpa chip berwarna
+            $statusText = match (strtoupper((string)$rawStatus)) {
+                'LUNAS', 'DITERIMA', 'SETTLEMENT', 'SUCCESS', 'BERHASIL' => 'Lunas',
+                'MENUNGGU', 'PENDING', 'BELUM BAYAR' => 'Menunggu Pembayaran',
+                'GAGAL', 'DITOLAK' => 'Gagal',
+                'EXPIRE', 'KEDALUWARSA', 'EXPIRED' => 'Kedaluwarsa',
+                'CANCEL', 'BATAL' => 'Dibatalkan',
+                default => ucfirst(strtolower((string)$rawStatus)),
+            };
+        @endphp
+        <tr>
+            <td class="col-no">{{ $no + 1 }}</td>
+            <td class="col-center font-bold">{{ $noReg }}</td>
+            <td class="col-center">{{ $value->order_id ?? '-' }}</td>
+            <td class="col-left font-bold">{{ $nama }}</td>
+            <td class="col-center">{{ $tglBayar }}</td>
+            <td class="col-right font-bold">Rp {{ number_format($nominal, 0, ',', '.') }}</td>
+            <td class="col-center">{{ $metode }}</td>
+            <td class="col-center">{{ $statusText }}</td>
+        </tr>
+        @empty
+        <tr>
+            <td colspan="8" class="col-center" style="padding: 16px; color: #6b7280;">Tidak ada data pembayaran yang sesuai kriteria filter</td>
+        </tr>
+        @endforelse
+    </tbody>
+</table>
+@endsection

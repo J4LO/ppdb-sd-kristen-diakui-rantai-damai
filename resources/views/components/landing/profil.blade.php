@@ -1,6 +1,6 @@
 <section id="profil" class="py-20 bg-slate-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center max-w-3xl mx-auto mb-16">
+        <div class="reveal text-center max-w-3xl mx-auto mb-16">
             <h2 class="text-green-600 font-bold tracking-wide uppercase text-sm mb-2">Profil Sekolah</h2>
             <h3 class="font-heading text-3xl md:text-4xl font-bold text-slate-800 mb-4">SD Kristen Diakui Rantai Damai</h3>
             <p class="text-slate-600 text-lg">Membentuk generasi unggul yang cerdas, berkarakter, dan berakar pada nilai-nilai Kristiani sejak dini.</p>
@@ -8,7 +8,7 @@
 
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {{-- Akreditasi --}}
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all">
+            <div class="reveal bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all" data-delay="0">
                 <div class="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center text-xl mb-4">
                     <i class="fas fa-certificate"></i>
                 </div>
@@ -18,7 +18,7 @@
             </div>
 
             {{-- Pendirian --}}
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all">
+            <div class="reveal bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all" data-delay="100">
                 <div class="w-12 h-12 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center text-xl mb-4">
                     <i class="fas fa-building"></i>
                 </div>
@@ -28,7 +28,7 @@
             </div>
 
             {{-- Waktu Belajar --}}
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all">
+            <div class="reveal bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all" data-delay="200">
                 <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl mb-4">
                     <i class="fas fa-clock"></i>
                 </div>
@@ -38,7 +38,7 @@
             </div>
             
             {{-- Fasilitas --}}
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all lg:col-span-3">
+            <div class="reveal-scale bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all lg:col-span-3" data-delay="120">
                 <div class="flex flex-col md:flex-row gap-6 items-center">
                     <div class="w-16 h-16 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center text-2xl shrink-0">
                         <i class="fas fa-school"></i>

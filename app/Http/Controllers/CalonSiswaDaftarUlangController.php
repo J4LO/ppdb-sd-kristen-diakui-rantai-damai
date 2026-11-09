@@ -7,6 +7,7 @@ use App\Models\DaftarUlang;
 use App\Models\PembayaranDaftarUlang;
 use App\Models\Seleksi;
 use App\Models\TahunAjaran;
+use App\Models\User;
 use App\Services\MidtransService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -359,9 +360,10 @@ class CalonSiswaDaftarUlangController extends Controller
      */
     public function print()
     {
-        $casis = auth()->user()->calonSiswa;
+        $user = auth()->user();
+        $casis = $user?->calonSiswa;
         if (!$casis) {
-            if ($user->calonSiswa()->onlyTrashed()->exists()) {
+            if ($user && $user->calonSiswa()->onlyTrashed()->exists()) {
                 return redirect()->back()->with('error', 'Data pendaftaran Anda sedang diarsipkan. Silakan hubungi panitia.');
             }
             return redirect()->back()->with('error', 'Data calon siswa tidak ditemukan.');
@@ -378,7 +380,25 @@ class CalonSiswaDaftarUlangController extends Controller
 
         $tahunAjar = $casis->tahunAjaran ?? TahunAjaran::where('status', 'Berlangsung')->first();
 
-        return view('casis.daftar_ulang.print', compact('daftarUlang', 'casis', 'seleksi', 'tahunAjar'));
+        $namaKepalaSekolah = $tahunAjar?->nama_kepala_sekolah 
+            ?? (TahunAjaran::where('status', 'Berlangsung')->value('nama_kepala_sekolah') ?? config('sekolah.kepala_sekolah', 'Serni, S.Pd.K'));
+
+        $panitia = User::where('role', 'Panitia')->first();
+        $namaPanitia = $panitia?->nama ?? 'Panitia PPDB';
+
+        $bulanIndo = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+        $now = \Carbon\Carbon::now();
+        $tanggalCetak = $now->day . ' ' . $bulanIndo[$now->month] . ' ' . $now->year;
+        $kotaSekolah = config('sekolah.kota', 'Rantai Damai');
+
+        return view('casis.daftar_ulang.print', compact(
+            'daftarUlang', 'casis', 'seleksi', 'tahunAjar',
+            'namaKepalaSekolah', 'namaPanitia', 'tanggalCetak', 'kotaSekolah'
+        ));
     }
 
     /**

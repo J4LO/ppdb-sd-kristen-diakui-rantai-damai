@@ -466,16 +466,11 @@
                                 {{ $casis->no_registrasi ?? '-' }}
                             </td>
 
-                            {{-- Calon Siswa & Ortu --}}
+                            {{-- Calon Siswa --}}
                             <td class="px-4 py-3.5">
                                 <div class="text-base font-semibold text-slate-900 leading-snug">
                                     {{ $namaCasis }}
                                 </div>
-                                @if($ortuCasis)
-                                    <div class="text-xs text-slate-500 mt-0.5">
-                                        Ortu: {{ $ortuCasis }}
-                                    </div>
-                                @endif
                             </td>
 
                             {{-- Waktu Bayar --}}

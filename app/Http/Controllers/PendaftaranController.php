@@ -210,10 +210,40 @@ class PendaftaranController extends Controller
 
     public function proses(Request $request)
     {
-        $tahunAjarBerlangsung = TahunAjaran::where('status', 'Berlangsung')->first();
+        $validated = $request->validate([
+            'email'           => 'required|email|max:100|unique:tb_users,email',
+            'password'        => 'required|min:6',
+            'name'            => 'nullable|string|max:100',
+            'nik'             => 'required|numeric|digits_between:10,16',
+            'nama'            => 'required|string|max:100',
+            'jenis_kelamin'   => 'required|in:Laki-Laki,Perempuan',
+            'tempat_lahir'    => 'nullable|string|max:100',
+            'tanggal_lahir'   => 'nullable|date',
+            'alamat'          => 'required|string',
+            'nama_ortu'       => 'required|string|max:100',
+            'pendidikan_ortu' => 'nullable|string|max:50',
+            'no_hp'           => 'required|string|max:20',
+        ], [
+            'email.required'         => 'Email wajib diisi.',
+            'email.email'            => 'Format email tidak valid.',
+            'email.unique'           => 'Email sudah terdaftar dalam sistem.',
+            'password.required'      => 'Password wajib diisi.',
+            'password.min'           => 'Password minimal 6 karakter.',
+            'nik.required'           => 'NIK calon siswa wajib diisi.',
+            'nik.numeric'            => 'NIK harus berupa angka.',
+            'nik.digits_between'     => 'NIK harus terdiri dari 10 sampai 16 digit.',
+            'nama.required'          => 'Nama lengkap calon siswa wajib diisi.',
+            'jenis_kelamin.required' => 'Jenis kelamin wajib dipilih.',
+            'alamat.required'        => 'Alamat domisili tempat tinggal wajib diisi.',
+            'nama_ortu.required'     => 'Nama orang tua / wali wajib diisi.',
+            'no_hp.required'         => 'Nomor telepon/WhatsApp wajib diisi.',
+        ]);
+
+        $tahunAjarBerlangsung = TahunAjaran::where('status', 'Berlangsung')->first()
+            ?? TahunAjaran::where('status', 'Aktif')->first();
 
         if ($tahunAjarBerlangsung) {
-            $baseUsername = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', explode('@', $request->email)[0]));
+            $baseUsername = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', explode('@', $validated['email'])[0]));
             $username = $baseUsername ?: 'user_' . time();
             $counter = 1;
             while (User::where('username', $username)->exists()) {
@@ -221,31 +251,33 @@ class PendaftaranController extends Controller
             }
 
             $user = User::create([
-                'nama' => $request->name ?: $request->nama,
+                'nama'     => $validated['name'] ?: $validated['nama_ortu'],
                 'username' => $username,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-                'role' => 'Orang Tua',
+                'email'    => $validated['email'],
+                'no_hp'    => $validated['no_hp'],
+                'password' => Hash::make($validated['password']),
+                'role'     => 'Orang Tua',
             ]);
 
             $casis = CalonSiswa::create([
                 'id_user'            => $user->id_user,
                 'id_tahun_ajaran'    => $tahunAjarBerlangsung->id_tahun_ajaran,
-                'nik_calon_siswa'    => $request->nik,
-                'nama_calon_siswa'   => $request->nama,
-                'jenis_kelamin'      => $request->jenis_kelamin,
-                'tmpt_lahir'         => $request->tempat_lahir,
-                'tgl_lahir'          => $request->tanggal_lahir,
-                'nama_ayah'          => $request->nama_ortu,
-                'alamat_calon_siswa' => $request->alamat,
-                'no_hp_orang_tua'    => $request->no_hp,
+                'nik_calon_siswa'    => $validated['nik'],
+                'nama_calon_siswa'   => $validated['nama'],
+                'jenis_kelamin'      => $validated['jenis_kelamin'],
+                'tmpt_lahir'         => $validated['tempat_lahir'] ?? null,
+                'tgl_lahir'          => $validated['tanggal_lahir'] ?? null,
+                'nama_ayah'          => $validated['nama_ortu'],
+                'pendidikan_ayah'    => $validated['pendidikan_ortu'] ?? null,
+                'alamat_calon_siswa' => $validated['alamat'],
+                'no_hp_orang_tua'    => $validated['no_hp'],
                 'tgl_pendaftaran'    => Carbon::now(),
                 'status_pendaftaran' => 'Menunggu',
             ]);
 
-            return redirect()->route('datapendaftaran')->with('success', 'Data calon siswa baru berhasil ditambahkan.');
+            return redirect()->route('indexcasis')->with('success', 'Data calon siswa baru (' . $casis->nama_calon_siswa . ') berhasil ditambahkan.');
         }
 
-        return redirect()->back()->with('error', 'Tidak ada tahun ajaran yang sedang aktif.');
+        return redirect()->back()->with('error', 'Tidak ada tahun ajaran yang sedang aktif atau berlangsung.')->withInput();
     }
 }

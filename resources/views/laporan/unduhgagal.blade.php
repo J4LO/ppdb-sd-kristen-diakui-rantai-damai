@@ -1,114 +1,79 @@
-<!DOCTYPE html>
-<html>
+@extends('layout.cetak-laporan')
 
-<head>
-    <title>Laporan Calon Siswa Tidak Lulus</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 12px;
+@section('title', 'Laporan Calon Siswa Tidak Lulus')
+@section('page-size', 'A4 landscape')
+
+@php
+    $isDomPdf = true;
+
+    // Helper penyamaran NIK
+    $maskNik = function($nik) {
+        $clean = trim((string)$nik);
+        if (empty($clean) || $clean === '-') {
+            return '-';
         }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        if (strlen($clean) >= 8) {
+            return substr($clean, 0, 4) . '****' . substr($clean, -4);
         }
+        return $clean;
+    };
+@endphp
 
-        th,
-        td {
-            border: 1px solid black;
-            padding: 6px;
-            text-align: center;
-        }
+@section('judul-laporan', 'LAPORAN CALON SISWA TIDAK LULUS SELEKSI')
 
-        th {
-            background-color: cornflowerblue;
-            color: white;
-            font-weight: bold;
-        }
+@section('baris-meta')
+    Status: Tidak Lulus Seleksi &middot; Tanggal Unduh: {{ $tanggalCetak ?? \Carbon\Carbon::now()->format('d/m/Y') }}
+@endsection
 
-        .center {
-            text-align: center;
-        }
+@section('jumlah-data')
+    Jumlah Data: {{ $data->count() }} Siswa Tidak Lulus
+@endsection
 
-        .title {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .jalan {
-            font-size: 12px;
-            margin-bottom: 5px;
-            color: #444;
-        }
-
-        .line {
-            border: none;
-            border-top: 2px solid black;
-            margin-bottom: 12px;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="center title">SD KRISTEN DIAKUI RANTAI DAMAI</div>
-    <div class="center jalan">Jl. Andi Pangeran, Desa Rantai Damai, Kec. Walenrang Timur, Kab. Luwu, Sulawesi Selatan</div>
-    <div class="center line"></div>
-
-    <h3 style="text-align: center; margin-bottom: 15px; color: #b91c1c;">Laporan Calon Siswa Baru Tidak Diterima (Tidak Lulus)</h3>
-
-    <table class="table">
-        <thead>
-            <tr>
-                <th style="width: 25px; text-align: center;">No</th>
-                <th style="width: 100px; text-align: center;">No. Pendaftaran</th>
-                <th style="width: 105px; text-align: center;">NIK</th>
-                <th style="text-align: left;">Nama Lengkap</th>
-                <th style="width: 85px; text-align: center;">Tanggal Seleksi</th>
-                <th style="width: 50px; text-align: center;">Membaca</th>
-                <th style="width: 50px; text-align: center;">Menulis</th>
-                <th style="width: 50px; text-align: center;">Berhitung</th>
-                <th style="width: 60px; text-align: center;">Total Nilai</th>
-                <th style="width: 60px; text-align: center;">Rata-rata</th>
-                <th style="width: 100px; text-align: center;">Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($data as $no => $value)
-            <tr>
-                <td style="text-align: center;">{{ $no + 1 }}</td>
-                <td style="text-align: center; font-weight: bold;">{{ $value->casis->no_registrasi ?? '-' }}</td>
-                <td style="text-align: center;">{{ $value->casis->nik ?? '-' }}</td>
-                <td style="text-align: left; font-weight: bold;">{{ $value->casis->nama ?? '-' }}</td>
-                <td style="text-align: center;">{{ $value->tgl_seleksi ? \Carbon\Carbon::parse($value->tgl_seleksi)->format('d-m-Y') : '-' }}</td>
-                <td style="text-align: center;">{{ $value->nilai_baca ?? 0 }}</td>
-                <td style="text-align: center;">{{ $value->nilai_tulis ?? 0 }}</td>
-                <td style="text-align: center;">{{ $value->nilai_hitung ?? 0 }}</td>
-                <td style="text-align: center; font-weight: bold;">{{ $value->total_nilai ?? 0 }}</td>
-                <td style="text-align: center;">{{ number_format($value->nilai_akhir ?? 0, 2) }}</td>
-                <td style="text-align: center; color: red; font-weight: bold;">TIDAK LULUS</td>
-            </tr>
-            @empty
-            <tr>
-                <td colspan="11" style="text-align: center; padding: 15px;">Tidak ada data siswa tidak lulus</td>
-            </tr>
-            @endforelse
-        </tbody>
-    </table>
-
-    <br><br>
-    <table style="border: none; width: 100%;">
-        <tr style="border: none;">
-            <td style="border: none; width: 60%;"></td>
-            <td style="border: none; width: 40%; text-align: center;">
-                <div>Rantai Damai, {{ date('d F Y') }}</div>
-                <div style="font-weight: bold;">Panitia Seleksi PPDB</div>
-                <br><br><br><br>
-                <div style="text-decoration: underline; font-weight: bold;">( Panitia PPDB )</div>
-            </td>
+@section('konten-tabel')
+<table class="tabel-laporan">
+    <thead>
+        <tr>
+            <th class="col-no" style="width: 3%;">No</th>
+            <th class="col-center" style="width: 12%;">No. Registrasi</th>
+            <th class="col-center" style="width: 12%;">NIK</th>
+            <th class="col-left" style="width: 19%;">Nama Lengkap</th>
+            <th class="col-center" style="width: 10%;">Tgl Observasi</th>
+            <th class="col-center" style="width: 7%;">Baca</th>
+            <th class="col-center" style="width: 7%;">Tulis</th>
+            <th class="col-center" style="width: 7%;">Hitung</th>
+            <th class="col-center" style="width: 7%;">Total</th>
+            <th class="col-center" style="width: 7%;">Rata-rata</th>
+            <th class="col-center" style="width: 9%;">Status</th>
         </tr>
-    </table>
-</body>
-
-</html>
+    </thead>
+    <tbody>
+        @forelse($data as $no => $value)
+        @php
+            $casis = $value->pembayaran?->calonSiswa ?? $value->casis;
+            $noReg = $casis?->no_registrasi ?? '-';
+            $rawNik = $casis?->nik_calon_siswa ?? ($casis?->nik ?? '-');
+            $maskedNik = $maskNik($rawNik);
+            $nama = $casis?->nama_calon_siswa ?? ($casis?->nama ?? '-');
+            $tglSeleksi = $value->tgl_seleksi ? \Carbon\Carbon::parse($value->tgl_seleksi)->format('d-m-Y') : '-';
+        @endphp
+        <tr>
+            <td class="col-no">{{ $no + 1 }}</td>
+            <td class="col-center font-bold">{{ $noReg }}</td>
+            <td class="col-center">{{ $maskedNik }}</td>
+            <td class="col-left font-bold">{{ $nama }}</td>
+            <td class="col-center">{{ $tglSeleksi }}</td>
+            <td class="col-center">{{ $value->nilai_baca ?? 0 }}</td>
+            <td class="col-center">{{ $value->nilai_tulis ?? 0 }}</td>
+            <td class="col-center">{{ $value->nilai_hitung ?? 0 }}</td>
+            <td class="col-center font-bold">{{ $value->total_nilai ?? 0 }}</td>
+            <td class="col-center">{{ number_format($value->nilai_akhir ?? 0, 2) }}</td>
+            <td class="col-center font-bold">TIDAK LULUS</td>
+        </tr>
+        @empty
+        <tr>
+            <td colspan="11" class="col-center" style="padding: 16px; color: #6b7280;">Tidak ada data calon siswa tidak lulus</td>
+        </tr>
+        @endforelse
+    </tbody>
+</table>
+@endsection
