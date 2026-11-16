@@ -1,0 +1,19 @@
+{
+    "name": "ppdb-sd-kristen-diakui-rantai-damai",
+    "private": true,
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build"
+    },
+    "devDependencies": {
+        "axios": "^1.7.4",
+        "laravel-vite-plugin": "^1.0",
+        "lodash": "^4.17.21",
+        "postcss": "^8.4.41",
+        "vite": "^5.0"
+    },
+    "dependencies": {
+        "@tailwindcss/vite": "^4.3.0",
+        "tailwindcss": "^4.3.0"
+    }
+}
